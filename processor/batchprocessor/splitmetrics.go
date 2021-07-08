@@ -118,7 +118,7 @@ func splitMetric(ms, dest pdata.Metric, size int) (int, bool) {
 		})
 	case pdata.MetricDataTypeDoubleGauge:
 		dest.DoubleGauge().DataPoints().Resize(size)
-		ms.DoubleGauge().DataPoints().RemoveIf(func(_ pdata.DoubleDataPoint) bool {
+		ms.DoubleGauge().DataPoints().RemoveIf(func(_ pdata.NumberDataPoint) bool {
 			return filterDataPoints()
 		})
 	case pdata.MetricDataTypeIntSum:
@@ -128,7 +128,7 @@ func splitMetric(ms, dest pdata.Metric, size int) (int, bool) {
 		})
 	case pdata.MetricDataTypeDoubleSum:
 		dest.DoubleSum().DataPoints().Resize(size)
-		ms.DoubleSum().DataPoints().RemoveIf(func(_ pdata.DoubleDataPoint) bool {
+		ms.DoubleSum().DataPoints().RemoveIf(func(_ pdata.NumberDataPoint) bool {
 			return filterDataPoints()
 		})
 	case pdata.MetricDataTypeIntHistogram:

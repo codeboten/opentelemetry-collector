@@ -142,7 +142,7 @@ func initializeDiskIOTimeMetric(metric pdata.Metric, startTime, now pdata.Timest
 
 	idx := 0
 	for device, ioCounter := range ioCounters {
-		initializeDoubleDataPoint(ddps.At(idx+0), startTime, now, device, "", float64(ioCounter.IoTime)/1e3)
+		initializeNumberDataPoint(ddps.At(idx+0), startTime, now, device, "", float64(ioCounter.IoTime)/1e3)
 		idx++
 	}
 }
@@ -155,8 +155,8 @@ func initializeDiskOperationTimeMetric(metric pdata.Metric, startTime, now pdata
 
 	idx := 0
 	for device, ioCounter := range ioCounters {
-		initializeDoubleDataPoint(ddps.At(idx+0), startTime, now, device, metadata.LabelDiskDirection.Read, float64(ioCounter.ReadTime)/1e3)
-		initializeDoubleDataPoint(ddps.At(idx+1), startTime, now, device, metadata.LabelDiskDirection.Write, float64(ioCounter.WriteTime)/1e3)
+		initializeNumberDataPoint(ddps.At(idx+0), startTime, now, device, metadata.LabelDiskDirection.Read, float64(ioCounter.ReadTime)/1e3)
+		initializeNumberDataPoint(ddps.At(idx+1), startTime, now, device, metadata.LabelDiskDirection.Write, float64(ioCounter.WriteTime)/1e3)
 		idx += 2
 	}
 }
@@ -185,7 +185,7 @@ func initializeInt64DataPoint(dataPoint pdata.IntDataPoint, startTime, now pdata
 	dataPoint.SetValue(value)
 }
 
-func initializeDoubleDataPoint(dataPoint pdata.DoubleDataPoint, startTime, now pdata.Timestamp, deviceLabel string, directionLabel string, value float64) {
+func initializeNumberDataPoint(dataPoint pdata.NumberDataPoint, startTime, now pdata.Timestamp, deviceLabel string, directionLabel string, value float64) {
 	labelsMap := dataPoint.LabelsMap()
 	labelsMap.Insert(metadata.Labels.DiskDevice, deviceLabel)
 	if directionLabel != "" {

@@ -38,7 +38,7 @@ func initializeDiskWeightedIOTimeMetric(metric pdata.Metric, startTime, now pdat
 
 	idx := 0
 	for device, ioCounter := range ioCounters {
-		initializeDoubleDataPoint(ddps.At(idx+0), startTime, now, device, "", float64(ioCounter.WeightedIO)/1e3)
+		initializeNumberDataPoint(ddps.At(idx+0), startTime, now, device, "", float64(ioCounter.WeightedIO)/1e3)
 		idx++
 	}
 }

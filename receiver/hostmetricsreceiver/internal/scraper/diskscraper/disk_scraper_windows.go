@@ -159,7 +159,7 @@ func initializeDiskIOTimeMetric(metric pdata.Metric, startTime, now pdata.Timest
 	ddps.Resize(len(logicalDiskCounterValues))
 	for idx, logicalDiskCounter := range logicalDiskCounterValues {
 		// disk active time = system boot time - disk idle time
-		initializeDoubleDataPoint(ddps.At(idx), startTime, now, logicalDiskCounter.InstanceName, "", float64(now-startTime)/1e9-float64(logicalDiskCounter.Values[idleTime])/1e7)
+		initializeNumberDataPoint(ddps.At(idx), startTime, now, logicalDiskCounter.InstanceName, "", float64(now-startTime)/1e9-float64(logicalDiskCounter.Values[idleTime])/1e7)
 	}
 }
 
@@ -169,8 +169,8 @@ func initializeDiskOperationTimeMetric(metric pdata.Metric, startTime, now pdata
 	ddps := metric.DoubleSum().DataPoints()
 	ddps.Resize(2 * len(logicalDiskCounterValues))
 	for idx, logicalDiskCounter := range logicalDiskCounterValues {
-		initializeDoubleDataPoint(ddps.At(2*idx+0), startTime, now, logicalDiskCounter.InstanceName, metadata.LabelDiskDirection.Read, float64(logicalDiskCounter.Values[avgDiskSecsPerRead])/1e7)
-		initializeDoubleDataPoint(ddps.At(2*idx+1), startTime, now, logicalDiskCounter.InstanceName, metadata.LabelDiskDirection.Write, float64(logicalDiskCounter.Values[avgDiskSecsPerWrite])/1e7)
+		initializeNumberDataPoint(ddps.At(2*idx+0), startTime, now, logicalDiskCounter.InstanceName, metadata.LabelDiskDirection.Read, float64(logicalDiskCounter.Values[avgDiskSecsPerRead])/1e7)
+		initializeNumberDataPoint(ddps.At(2*idx+1), startTime, now, logicalDiskCounter.InstanceName, metadata.LabelDiskDirection.Write, float64(logicalDiskCounter.Values[avgDiskSecsPerWrite])/1e7)
 	}
 }
 
@@ -195,7 +195,7 @@ func initializeInt64DataPoint(dataPoint pdata.IntDataPoint, startTime, now pdata
 	dataPoint.SetValue(value)
 }
 
-func initializeDoubleDataPoint(dataPoint pdata.DoubleDataPoint, startTime, now pdata.Timestamp, deviceLabel string, directionLabel string, value float64) {
+func initializeNumberDataPoint(dataPoint pdata.NumberDataPoint, startTime, now pdata.Timestamp, deviceLabel string, directionLabel string, value float64) {
 	labelsMap := dataPoint.LabelsMap()
 	labelsMap.Insert(metadata.Labels.DiskDevice, deviceLabel)
 	if directionLabel != "" {
