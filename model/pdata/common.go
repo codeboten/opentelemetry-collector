@@ -795,16 +795,10 @@ func (am AttributeMap) CopyTo(dest AttributeMap) {
 	*dest.orig = origs
 }
 
-// AttributeValueToString converts an OTLP AttributeValue object to its equivalent string representation
-// Deprecated: use AttributeValue's String method instead.
-func AttributeValueToString(attr AttributeValue) string {
-	return attr.AsString()
-}
-
-// AttributeMapToMap converts an OTLP AttributeMap to a standard go map
-func AttributeMapToMap(attrMap AttributeMap) map[string]interface{} {
+// AsMap converts an OTLP AttributeMap to a standard go map
+func (am AttributeMap) AsMap() map[string]interface{} {
 	rawMap := make(map[string]interface{})
-	attrMap.Range(func(k string, v AttributeValue) bool {
+	am.Range(func(k string, v AttributeValue) bool {
 		switch v.Type() {
 		case AttributeValueTypeString:
 			rawMap[k] = v.StringVal()
@@ -817,13 +811,25 @@ func AttributeMapToMap(attrMap AttributeMap) map[string]interface{} {
 		case AttributeValueTypeNull:
 			rawMap[k] = nil
 		case AttributeValueTypeMap:
-			rawMap[k] = AttributeMapToMap(v.MapVal())
+			rawMap[k] = v.MapVal().AsMap()
 		case AttributeValueTypeArray:
 			rawMap[k] = attributeArrayToSlice(v.ArrayVal())
 		}
 		return true
 	})
 	return rawMap
+}
+
+// AttributeValueToString converts an OTLP AttributeValue object to its equivalent string representation
+// Deprecated: use AttributeValue's String method instead.
+func AttributeValueToString(attr AttributeValue) string {
+	return attr.AsString()
+}
+
+// AttributeMapToMap converts an OTLP AttributeMap to a standard go map
+// Deprecated: use AttributeMap's AsMap method instead.
+func AttributeMapToMap(attrMap AttributeMap) map[string]interface{} {
+	return attrMap.AsMap()
 }
 
 // attributeArrayToSlice creates a slice out of a AnyValueArray.
