@@ -384,7 +384,7 @@ func (a AttributeValue) AsString() string {
 		return strconv.FormatInt(a.IntVal(), 10)
 
 	case AttributeValueTypeMap:
-		jsonStr, _ := json.Marshal(AttributeMapToMap(a.MapVal()))
+		jsonStr, _ := json.Marshal(attributeMapToMarshallable(a.MapVal()))
 		return string(jsonStr)
 
 	case AttributeValueTypeArray:
@@ -796,9 +796,20 @@ func (am AttributeMap) CopyTo(dest AttributeMap) {
 }
 
 // AsMap converts an OTLP AttributeMap to a standard go map
-func (am AttributeMap) AsMap() map[string]interface{} {
-	rawMap := make(map[string]interface{})
+func (am AttributeMap) AsMap() map[string]AttributeValue {
+	rawMap := make(map[string]AttributeValue)
 	am.Range(func(k string, v AttributeValue) bool {
+		rawMap[k] = v
+		return true
+	})
+	return rawMap
+}
+
+// attributeMapToMarshallable returns a map containing values that
+// can be marshalled via JSON
+func attributeMapToMarshallable(attrMap AttributeMap) map[string]interface{} {
+	rawMap := make(map[string]interface{})
+	attrMap.Range(func(k string, v AttributeValue) bool {
 		switch v.Type() {
 		case AttributeValueTypeString:
 			rawMap[k] = v.StringVal()
@@ -811,7 +822,7 @@ func (am AttributeMap) AsMap() map[string]interface{} {
 		case AttributeValueTypeNull:
 			rawMap[k] = nil
 		case AttributeValueTypeMap:
-			rawMap[k] = v.MapVal().AsMap()
+			rawMap[k] = attributeMapToMarshallable(v.MapVal())
 		case AttributeValueTypeArray:
 			rawMap[k] = attributeArrayToSlice(v.ArrayVal())
 		}
@@ -829,27 +840,23 @@ func AttributeValueToString(attr AttributeValue) string {
 // AttributeMapToMap converts an OTLP AttributeMap to a standard go map
 // Deprecated: use AttributeMap's AsMap method instead.
 func AttributeMapToMap(attrMap AttributeMap) map[string]interface{} {
-	return attrMap.AsMap()
+	return attributeMapToMarshallable(attrMap)
 }
 
 // attributeArrayToSlice creates a slice out of a AnyValueArray.
-func attributeArrayToSlice(attrArray AnyValueArray) []interface{} {
-	rawSlice := make([]interface{}, 0, attrArray.Len())
+func attributeArrayToSlice(attrArray AnyValueArray) []AttributeValue {
+	rawSlice := make([]AttributeValue, 0, attrArray.Len())
 	for i := 0; i < attrArray.Len(); i++ {
 		v := attrArray.At(i)
 		switch v.Type() {
-		case AttributeValueTypeString:
-			rawSlice = append(rawSlice, v.StringVal())
-		case AttributeValueTypeInt:
-			rawSlice = append(rawSlice, v.IntVal())
-		case AttributeValueTypeDouble:
-			rawSlice = append(rawSlice, v.DoubleVal())
-		case AttributeValueTypeBool:
-			rawSlice = append(rawSlice, v.BoolVal())
-		case AttributeValueTypeNull:
-			rawSlice = append(rawSlice, nil)
+		case AttributeValueTypeString,
+			AttributeValueTypeInt,
+			AttributeValueTypeDouble,
+			AttributeValueTypeBool,
+			AttributeValueTypeNull:
+			rawSlice = append(rawSlice, v)
 		default:
-			rawSlice = append(rawSlice, "<Invalid array value>")
+			rawSlice = append(rawSlice, NewAttributeValueString("<Invalid array value>"))
 		}
 	}
 	return rawSlice
