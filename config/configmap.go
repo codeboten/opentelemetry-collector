@@ -166,7 +166,7 @@ func decoderConfig(result interface{}) *mapstructure.DecoderConfig {
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
 			expandNilStructPointersFunc,
 			stringToSliceHookFunc,
-			mapStringToMapComponentIDHookFunc,
+			stringMapToComponentIDMapHookFunc,
 			stringToTimeDurationHookFunc,
 			textUnmarshallerHookFunc,
 		),
@@ -179,6 +179,7 @@ var (
 	textUnmarshallerHookFunc     = mapstructure.TextUnmarshallerHookFunc()
 
 	componentIDType = reflect.TypeOf(NewComponentID("foo"))
+	sentinel        = &struct{}{}
 )
 
 // In cases where a config has a mapping of something to a struct pointers
@@ -187,41 +188,44 @@ var (
 // to a struct to resolve to the zero value of that struct.
 //
 // e.g. given a config type:
-// type Config struct { Thing *SomeStruct `mapstructure:"thing"` }
+// type Config struct { Struct *SomeStruct `mapstructure:"struct"` }
 //
 // and yaml of:
 // config:
-//   thing:
+//   struct:
 //
 // we want an unmarshaled Config to be equivalent to
-// Config{Thing: &SomeStruct{}} instead of Config{Thing: nil}
+// Config{Struct: &SomeStruct{}} instead of Config{Struct: nil}
 var expandNilStructPointersFunc = func(from reflect.Value, to reflect.Value) (interface{}, error) {
-	// ensure we are dealing with map to map comparison
-	if from.Kind() == reflect.Map && to.Kind() == reflect.Map {
-		toElem := to.Type().Elem()
-		// ensure that map values are pointers to a struct
-		// (that may be nil and require manual setting w/ zero value)
-		if toElem.Kind() == reflect.Ptr && toElem.Elem().Kind() == reflect.Struct {
-			fromRange := from.MapRange()
-			for fromRange.Next() {
-				fromKey := fromRange.Key()
-				fromValue := fromRange.Value()
-				// ensure that we've run into a nil pointer instance
-				if fromValue.IsNil() {
-					newFromValue := reflect.New(toElem.Elem())
-					from.SetMapIndex(fromKey, newFromValue)
-				}
+	if from.Interface() == sentinel {
+		// If the destination is a nil ptr, then initialize it with a pointer to a zero value.
+		if to.Kind() == reflect.Ptr && to.IsNil() {
+			to.Set(reflect.New(to.Type().Elem()))
+		}
+		// Replace the source to a zero value struct of the same type as the destination.
+		return reflect.Zero(to.Type()).Interface(), nil
+	}
+	// If any map has an element with a nil value, replace that with a "sentinel". The reason to use
+	// a "sentinel" because otherwise we should initialize that with a zero value of the same type as the
+	// destination, but destination could be a struct pointer or a map and in case of a struct we would
+	// need to duplicate the code that looks up for the "mapstructure" tag to identify the field.
+	if from.Kind() == reflect.Map {
+		fromRange := from.MapRange()
+		for fromRange.Next() {
+			fromKey := fromRange.Key()
+			fromValue := fromRange.Value()
+			// ensure that we've run into a nil pointer instance
+			if fromValue.IsNil() {
+				from.SetMapIndex(fromKey, reflect.ValueOf(sentinel))
 			}
 		}
 	}
 	return from.Interface(), nil
 }
 
-// mapStringToMapComponentIDHookFunc returns a DecodeHookFunc that converts a map[string]interface{} to
+// stringMapToComponentIDMapHookFunc returns a DecodeHookFunc that converts a map[string]interface{} to
 // map[ComponentID]interface{}.
-// This is needed in combination since the ComponentID.UnmarshalText may produce equal IDs for different strings,
-// and an error needs to be returned in that case, otherwise the last equivalent ID overwrites the previous one.
-var mapStringToMapComponentIDHookFunc = func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
+var stringMapToComponentIDMapHookFunc = func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
 	if f.Kind() != reflect.Map || f.Key().Kind() != reflect.String {
 		return data, nil
 	}
