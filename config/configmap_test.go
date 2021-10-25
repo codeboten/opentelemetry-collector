@@ -134,17 +134,20 @@ func TestExpandNilStructPointersFunc_DefaultNotNilConfigNil(t *testing.T) {
 	}
 	parser := NewMapFromStringMap(stringMap)
 	varBool := true
+	s1 := &Struct{Name: "s1"}
+	s2 := &Struct{Name: "s2"}
 	cfg := &TestConfig{
 		Boolean:   &varBool,
-		Struct:    &Struct{},
-		MapStruct: map[string]*Struct{"struct": {}},
+		Struct:    s1,
+		MapStruct: map[string]*Struct{"struct": s2},
 	}
 	assert.NoError(t, parser.UnmarshalExact(cfg))
 	assert.NotNil(t, cfg.Boolean)
 	assert.True(t, *cfg.Boolean)
 	assert.NotNil(t, cfg.Struct)
+	assert.Equal(t, s1, cfg.Struct)
 	assert.NotNil(t, cfg.MapStruct)
-	assert.Equal(t, &Struct{}, cfg.MapStruct["struct"])
+	assert.Equal(t, s2, cfg.MapStruct["struct"])
 }
 
 type TestConfig struct {
@@ -153,4 +156,6 @@ type TestConfig struct {
 	MapStruct map[string]*Struct `mapstructure:"map_struct"`
 }
 
-type Struct struct{}
+type Struct struct {
+	Name string
+}
