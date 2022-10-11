@@ -45,6 +45,7 @@
 - Add prometheus metric prefix and constant service attributes to Collector's own telemetry when using OpenTelemetry for internal telemetry (#6223)
 - `exporter/otlp`: split into its own module
 - `exporter/logging`: Apply consistent rendering of map values (#6244)
+- `exporter/otlphttp`: split into its own module
 
 ### 🧰 Bug fixes 🧰
 

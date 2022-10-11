@@ -8,6 +8,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	go.opentelemetry.io/collector v0.61.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.61.0
+	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.61.0
 	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664
 )
 
@@ -83,6 +84,8 @@ require (
 replace go.opentelemetry.io/collector => ../../
 
 replace go.opentelemetry.io/collector/exporter/otlpexporter => ../../exporter/otlpexporter
+
+replace go.opentelemetry.io/collector/exporter/otlphttpexporter => ../../exporter/otlphttpexporter
 
 replace go.opentelemetry.io/collector/pdata => ../../pdata
 
