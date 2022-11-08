@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/collector v0.63.1
+	go.opentelemetry.io/collector/component v0.63.1
 	go.opentelemetry.io/contrib/zpages v0.36.4
 	go.opentelemetry.io/otel/sdk v1.11.1
 	go.opentelemetry.io/otel/trace v1.11.1
@@ -46,3 +47,5 @@ replace go.opentelemetry.io/collector/pdata => ../../pdata
 replace go.opentelemetry.io/collector/semconv => ../../semconv
 
 replace go.opentelemetry.io/collector/processor/batchprocessor => ../../processor/batchprocessor
+
+replace go.opentelemetry.io/collector/component => ../../component

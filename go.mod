@@ -20,6 +20,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
 	go.opencensus.io v0.24.0
+	go.opentelemetry.io/collector/component v0.63.1
 	go.opentelemetry.io/collector/extension/zpagesextension v0.0.0-20221102221454-bfc45c16c979
 	go.opentelemetry.io/collector/pdata v0.63.1
 	go.opentelemetry.io/collector/processor/batchprocessor v0.0.0-20221103161931-a167b006e8c0
@@ -78,6 +79,8 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+replace go.opentelemetry.io/collector/component => ./component
 
 replace go.opentelemetry.io/collector/semconv => ./semconv
 
