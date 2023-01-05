@@ -217,8 +217,8 @@ func TestHTTPClientSettingsError(t *testing.T) {
 		ext: map[component.ID]component.Component{},
 	}
 	tests := []struct {
-		settings HTTPClientSettings
 		err      string
+		settings HTTPClientSettings
 	}{
 		{
 			err: "^failed to load TLS config: failed to load CA CertPool: failed to load CA /doesnt/exist:",
@@ -264,10 +264,10 @@ func TestHTTPClientSettingsError(t *testing.T) {
 
 func TestHTTPClientSettingWithAuthConfig(t *testing.T) {
 	tests := []struct {
-		name      string
-		shouldErr bool
-		settings  HTTPClientSettings
 		host      component.Host
+		name      string
+		settings  HTTPClientSettings
+		shouldErr bool
 	}{
 		{
 			name: "no_auth_extension_enabled",
@@ -353,8 +353,8 @@ func TestHTTPClientSettingWithAuthConfig(t *testing.T) {
 
 func TestHTTPServerSettingsError(t *testing.T) {
 	tests := []struct {
-		settings HTTPServerSettings
 		err      string
+		settings HTTPServerSettings
 	}{
 		{
 			err: "^failed to load TLS config: failed to load CA CertPool: failed to load CA /doesnt/exist:",
@@ -437,9 +437,9 @@ func TestHTTPServerWarning(t *testing.T) {
 
 func TestHttpReception(t *testing.T) {
 	tests := []struct {
-		name           string
 		tlsServerCreds *configtls.TLSServerSetting
 		tlsClientCreds *configtls.TLSClientSetting
+		name           string
 		hasError       bool
 		forceHTTP1     bool
 	}{
@@ -824,8 +824,8 @@ func ExampleHTTPServerSettings() {
 
 func TestHttpHeaders(t *testing.T) {
 	tests := []struct {
-		name    string
 		headers map[string]configopaque.String
+		name    string
 	}{
 		{
 			name: "with_headers",
@@ -863,10 +863,10 @@ func TestHttpHeaders(t *testing.T) {
 
 func TestContextWithClient(t *testing.T) {
 	testCases := []struct {
-		desc       string
 		input      *http.Request
-		doMetadata bool
 		expected   client.Info
+		desc       string
+		doMetadata bool
 	}{
 		{
 			desc:     "request without client IP or headers",

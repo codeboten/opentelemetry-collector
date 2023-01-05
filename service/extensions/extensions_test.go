@@ -37,11 +37,11 @@ func TestBuildExtensions(t *testing.T) {
 	badExtensionCfg := badExtensionFactory.CreateDefaultConfig()
 
 	tests := []struct {
-		name              string
 		factories         map[component.Type]extension.Factory
 		extensionsConfigs map[component.ID]component.Config
-		serviceExtensions []component.ID
+		name              string
 		wantErrMsg        string
+		serviceExtensions []component.ID
 	}{
 		{
 			name: "extension_not_configured",

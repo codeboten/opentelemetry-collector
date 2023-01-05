@@ -72,9 +72,9 @@ type baseSettings struct {
 	component.StartFunc
 	component.ShutdownFunc
 	consumerOptions []consumer.Option
-	TimeoutSettings
 	QueueSettings
 	RetrySettings
+	TimeoutSettings
 }
 
 // fromOptions returns the internal options starting from the default and applying all configured options.

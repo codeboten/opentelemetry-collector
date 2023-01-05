@@ -52,12 +52,11 @@ func init() {
 
 // Resolver resolves a configuration as a Conf.
 type Resolver struct {
-	uris       []location
 	providers  map[string]Provider
+	watcher    chan error
+	uris       []location
 	converters []Converter
-
-	closers []CloseFunc
-	watcher chan error
+	closers    []CloseFunc
 }
 
 // ResolverSettings are the settings to configure the behavior of the Resolver.

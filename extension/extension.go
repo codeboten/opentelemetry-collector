@@ -74,9 +74,9 @@ type Factory interface {
 
 type factory struct {
 	component.Factory
-	cfgType component.Type
 	component.CreateDefaultConfigFunc
 	CreateFunc
+	cfgType            component.Type
 	extensionStability component.StabilityLevel
 }
 

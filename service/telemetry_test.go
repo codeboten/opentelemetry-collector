@@ -93,14 +93,14 @@ func TestBuildTelAttrs(t *testing.T) {
 
 func TestTelemetryInit(t *testing.T) {
 	type metricValue struct {
-		value  float64
 		labels map[string]string
+		value  float64
 	}
 
 	for _, tc := range []struct {
+		expectedMetrics map[string]metricValue
 		name            string
 		useOtel         bool
-		expectedMetrics map[string]metricValue
 	}{
 		{
 			name:    "UseOpenCensusForInternalMetrics",

@@ -29,9 +29,9 @@ import (
 
 func TestConfigValidate(t *testing.T) {
 	var testCases = []struct {
-		name     string // test case name (also file name containing config yaml)
 		cfgFn    func() *Config
 		expected error
+		name     string // test case name (also file name containing config yaml)
 	}{
 		{
 			name:     "valid",

@@ -69,9 +69,9 @@ func (nc *nopExtConfig) Validate() error {
 
 func TestConfigValidate(t *testing.T) {
 	var testCases = []struct {
-		name     string // test case name (also file name containing config yaml)
-		cfgFn    func() *Config
 		expected error
+		cfgFn    func() *Config
+		name     string
 	}{
 		{
 			name:     "valid",

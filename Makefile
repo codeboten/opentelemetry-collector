@@ -483,3 +483,7 @@ chlog-preview: chlog-install
 .PHONY: chlog-update
 chlog-update: chlog-install
 	chloggen update --version $(VERSION)
+
+.PHONY: fieldalignment
+fieldalignment:
+	@$(MAKE) for-all-target TARGET="align"

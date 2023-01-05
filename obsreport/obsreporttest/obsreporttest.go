@@ -54,14 +54,13 @@ const (
 )
 
 type TestTelemetry struct {
-	component.TelemetrySettings
-	id           component.ID
-	SpanRecorder *tracetest.SpanRecorder
-	views        []*view.View
-
+	SpanRecorder          *tracetest.SpanRecorder
 	otelPrometheusChecker *prometheusChecker
 	meterProvider         *sdkmetric.MeterProvider
 	ocExporter            *ocprom.Exporter
+	component.TelemetrySettings
+	id    component.ID
+	views []*view.View
 }
 
 // ToExporterCreateSettings returns an exporter.CreateSettings with configured TelemetrySettings.

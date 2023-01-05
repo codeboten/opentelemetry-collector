@@ -400,12 +400,12 @@ func TestQueueSettings_Validate(t *testing.T) {
 func TestGetRetrySettings(t *testing.T) {
 	getStorageClientError := errors.New("unable to create storage client")
 	testCases := []struct {
-		desc           string
 		storage        storage.Extension
-		numStorages    int
-		storageIndex   int
 		expectedError  error
 		getClientError error
+		desc           string
+		numStorages    int
+		storageIndex   int
 	}{
 		{
 			desc:          "obtain storage extension by name",
@@ -610,10 +610,10 @@ func newErrorRequest(ctx context.Context) internal.Request {
 
 type mockRequest struct {
 	baseRequest
-	cnt          int
-	mu           sync.Mutex
 	consumeError error
 	requestCount *atomic.Int64
+	cnt          int
+	mu           sync.Mutex
 }
 
 func (m *mockRequest) Export(ctx context.Context) error {

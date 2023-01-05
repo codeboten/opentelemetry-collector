@@ -45,9 +45,9 @@ func (c *customRoundTripper) RoundTrip(request *http.Request) (*http.Response, e
 
 func TestMockRoundTripper(t *testing.T) {
 	testcases := []struct {
+		clientAuth  MockClient
 		name        string
 		expectedErr bool
-		clientAuth  MockClient
 	}{
 		{
 			name:        "no_error",
@@ -97,9 +97,9 @@ func (c *customPerRPCCredentials) RequireTransportSecurity() bool {
 
 func TestMockPerRPCCredential(t *testing.T) {
 	testcases := []struct {
+		clientAuth  MockClient
 		name        string
 		expectedErr bool
-		clientAuth  MockClient
 	}{
 		{
 			name:        "no_error",

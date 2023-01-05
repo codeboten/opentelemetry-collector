@@ -46,8 +46,8 @@ type baseConsumer interface {
 }
 
 type builtComponent struct {
-	id   component.ID
 	comp component.Component
+	id   component.ID
 }
 
 type builtPipeline struct {
@@ -60,12 +60,10 @@ type builtPipeline struct {
 
 // builtPipelines is set of all pipelines created from exporter configs.
 type builtPipelines struct {
-	telemetry component.TelemetrySettings
-
 	allReceivers map[component.DataType]map[component.ID]component.Component
 	allExporters map[component.DataType]map[component.ID]component.Component
-
-	pipelines map[component.ID]*builtPipeline
+	pipelines    map[component.ID]*builtPipeline
+	telemetry    component.TelemetrySettings
 }
 
 // StartAll starts all pipelines.
@@ -182,15 +180,12 @@ func (bps *builtPipelines) HandleZPages(w http.ResponseWriter, r *http.Request) 
 
 // pipelinesSettings holds configuration for building builtPipelines.
 type pipelinesSettings struct {
-	Telemetry component.TelemetrySettings
-	BuildInfo component.BuildInfo
-
-	Receivers  *receiver.Builder
-	Processors *processor.Builder
-	Exporters  *exporter.Builder
-
-	// PipelineConfigs is a map of component.ID to PipelineConfig.
+	Receivers       *receiver.Builder
+	Processors      *processor.Builder
+	Exporters       *exporter.Builder
 	PipelineConfigs map[component.ID]*PipelineConfig
+	Telemetry       component.TelemetrySettings
+	BuildInfo       component.BuildInfo
 }
 
 // buildPipelines builds all pipelines from config.

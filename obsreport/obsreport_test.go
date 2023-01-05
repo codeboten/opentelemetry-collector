@@ -48,8 +48,8 @@ var (
 )
 
 type testParams struct {
-	items int
 	err   error
+	items int
 }
 
 func testTelemetry(t *testing.T, id component.ID, testFunc func(t *testing.T, tt obsreporttest.TestTelemetry, registry *featuregate.Registry)) {

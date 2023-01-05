@@ -44,18 +44,16 @@ var (
 
 // Scraper is a helper to add observability to a component.Scraper.
 type Scraper struct {
-	level      configtelemetry.Level
-	receiverID component.ID
-	scraper    component.ID
-	mutators   []tag.Mutator
-	tracer     trace.Tracer
-
-	logger *zap.Logger
-
-	useOtelForMetrics    bool
-	otelAttrs            []attribute.KeyValue
+	tracer               trace.Tracer
 	scrapedMetricsPoints syncint64.Counter
 	erroredMetricsPoints syncint64.Counter
+	logger               *zap.Logger
+	receiverID           component.ID
+	scraper              component.ID
+	mutators             []tag.Mutator
+	otelAttrs            []attribute.KeyValue
+	level                configtelemetry.Level
+	useOtelForMetrics    bool
 }
 
 // ScraperSettings are settings for creating a Scraper.

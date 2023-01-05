@@ -62,13 +62,11 @@ var (
 )
 
 type telemetryInitializer struct {
-	registry *featuregate.Registry
-	views    []*view.View
-
-	ocRegistry *ocmetric.Registry
 	mp         metric.MeterProvider
-
-	server *http.Server
+	registry   *featuregate.Registry
+	ocRegistry *ocmetric.Registry
+	server     *http.Server
+	views      []*view.View
 }
 
 func newColTelemetry(registry *featuregate.Registry) *telemetryInitializer {

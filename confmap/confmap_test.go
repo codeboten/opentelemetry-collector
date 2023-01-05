@@ -33,9 +33,9 @@ func TestToStringMapFlatten(t *testing.T) {
 
 func TestToStringMap(t *testing.T) {
 	tests := []struct {
+		stringMap map[string]interface{}
 		name      string
 		fileName  string
-		stringMap map[string]interface{}
 	}{
 		{
 			name:     "Sample Collector configuration",
@@ -204,8 +204,8 @@ func (tID TestID) MarshalText() (text []byte, err error) {
 }
 
 type TestIDConfig struct {
-	Boolean bool              `mapstructure:"bool"`
 	Map     map[TestID]string `mapstructure:"map"`
+	Boolean bool              `mapstructure:"bool"`
 }
 
 func TestMapKeyStringToMapKeyTextUnmarshalerHookFunc(t *testing.T) {

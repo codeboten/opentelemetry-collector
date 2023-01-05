@@ -149,10 +149,10 @@ func TestShutdownWhileNotEmpty(t *testing.T) {
 }
 
 type consumerState struct {
-	sync.Mutex
 	t            *testing.T
 	consumed     map[string]bool
 	consumedOnce *atomic.Bool
+	sync.Mutex
 }
 
 func newConsumerState(t *testing.T) *consumerState {

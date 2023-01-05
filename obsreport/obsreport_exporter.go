@@ -43,20 +43,19 @@ const (
 
 // Exporter is a helper to add observability to a component.Exporter.
 type Exporter struct {
-	level          configtelemetry.Level
-	spanNamePrefix string
-	mutators       []tag.Mutator
-	tracer         trace.Tracer
-	logger         *zap.Logger
-
-	useOtelForMetrics        bool
-	otelAttrs                []attribute.KeyValue
+	sentMetricPoints         syncint64.Counter
+	tracer                   trace.Tracer
 	sentSpans                syncint64.Counter
 	failedToSendSpans        syncint64.Counter
-	sentMetricPoints         syncint64.Counter
 	failedToSendMetricPoints syncint64.Counter
 	sentLogRecords           syncint64.Counter
 	failedToSendLogRecords   syncint64.Counter
+	logger                   *zap.Logger
+	spanNamePrefix           string
+	mutators                 []tag.Mutator
+	otelAttrs                []attribute.KeyValue
+	level                    configtelemetry.Level
+	useOtelForMetrics        bool
 }
 
 // ExporterSettings are settings for creating an Exporter.

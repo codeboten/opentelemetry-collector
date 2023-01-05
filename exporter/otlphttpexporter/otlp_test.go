@@ -386,12 +386,12 @@ func TestErrorResponses(t *testing.T) {
 	errMsgPrefix := fmt.Sprintf("error exporting items, request to http://%s/v1/traces responded with HTTP Status Code ", addr)
 
 	tests := []struct {
+		err            error
+		responseBody   *status.Status
+		headers        map[string]string
 		name           string
 		responseStatus int
-		responseBody   *status.Status
-		err            error
 		isPermErr      bool
-		headers        map[string]string
 	}{
 		{
 			name:           "400",

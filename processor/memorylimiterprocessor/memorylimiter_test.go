@@ -48,9 +48,9 @@ func TestNew(t *testing.T) {
 	}
 	sink := new(consumertest.TracesSink)
 	tests := []struct {
+		wantErr error
 		name    string
 		args    args
-		wantErr error
 	}{
 		{
 			name: "zero_checkInterval",
@@ -361,9 +361,9 @@ func TestDropDecision(t *testing.T) {
 	assert.Nil(t, decison1000Limit40Spike60)
 
 	tests := []struct {
+		ms           *runtime.MemStats
 		name         string
 		usageChecker memUsageChecker
-		ms           *runtime.MemStats
 		shouldDrop   bool
 	}{
 		{
@@ -420,8 +420,8 @@ func TestBallastSize(t *testing.T) {
 }
 
 type host struct {
-	ballastSize uint64
 	component.Host
+	ballastSize uint64
 }
 
 func (h *host) GetExtensions() map[component.ID]component.Component {
@@ -431,9 +431,9 @@ func (h *host) GetExtensions() map[component.ID]component.Component {
 }
 
 type ballastExtension struct {
-	ballastSize uint64
 	component.StartFunc
 	component.ShutdownFunc
+	ballastSize uint64
 }
 
 func (be *ballastExtension) GetBallastSize() uint64 {

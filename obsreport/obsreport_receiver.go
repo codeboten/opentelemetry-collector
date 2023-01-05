@@ -44,37 +44,30 @@ const (
 
 // Receiver is a helper to add observability to a receiver.Receiver.
 type Receiver struct {
-	level          configtelemetry.Level
-	spanNamePrefix string
-	transport      string
-	longLivedCtx   bool
-	mutators       []tag.Mutator
-	tracer         trace.Tracer
-	meter          metric.Meter
-	logger         *zap.Logger
-
-	useOtelForMetrics bool
-	otelAttrs         []attribute.KeyValue
-
-	acceptedSpansCounter        syncint64.Counter
 	refusedSpansCounter         syncint64.Counter
-	acceptedMetricPointsCounter syncint64.Counter
-	refusedMetricPointsCounter  syncint64.Counter
-	acceptedLogRecordsCounter   syncint64.Counter
 	refusedLogRecordsCounter    syncint64.Counter
+	acceptedLogRecordsCounter   syncint64.Counter
+	tracer                      trace.Tracer
+	meter                       metric.Meter
+	refusedMetricPointsCounter  syncint64.Counter
+	acceptedMetricPointsCounter syncint64.Counter
+	acceptedSpansCounter        syncint64.Counter
+	logger                      *zap.Logger
+	spanNamePrefix              string
+	transport                   string
+	mutators                    []tag.Mutator
+	otelAttrs                   []attribute.KeyValue
+	level                       configtelemetry.Level
+	useOtelForMetrics           bool
+	longLivedCtx                bool
 }
 
 // ReceiverSettings are settings for creating an Receiver.
 type ReceiverSettings struct {
-	ReceiverID component.ID
-	Transport  string
-	// LongLivedCtx when true indicates that the context passed in the call
-	// outlives the individual receive operation.
-	// Typically the long lived context is associated to a connection,
-	// eg.: a gRPC stream, for which many batches of data are received in individual
-	// operations without a corresponding new context per operation.
-	LongLivedCtx           bool
 	ReceiverCreateSettings receiver.CreateSettings
+	ReceiverID             component.ID
+	Transport              string
+	LongLivedCtx           bool
 }
 
 // NewReceiver creates a new Receiver.

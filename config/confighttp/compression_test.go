@@ -142,11 +142,11 @@ func TestHTTPClientCompression(t *testing.T) {
 func TestHTTPContentDecompressionHandler(t *testing.T) {
 	testBody := []byte("uncompressed_text")
 	tests := []struct {
+		reqBodyFunc func() (*bytes.Buffer, error)
 		name        string
 		encoding    string
-		reqBodyFunc func() (*bytes.Buffer, error)
-		respCode    int
 		respBody    string
+		respCode    int
 	}{
 		{
 			name:     "NoCompression",

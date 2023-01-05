@@ -69,22 +69,18 @@ func WithTickerChannel(tickerCh <-chan time.Time) ScraperControllerOption {
 }
 
 type controller struct {
-	id                 component.ID
-	logger             *zap.Logger
-	collectionInterval time.Duration
 	nextConsumer       consumer.Metrics
-
-	scrapers    []Scraper
-	obsScrapers []*obsreport.Scraper
-
-	tickerCh <-chan time.Time
-
-	initialized bool
-	done        chan struct{}
-	terminated  chan struct{}
-
-	obsrecv      *obsreport.Receiver
-	recvSettings receiver.CreateSettings
+	logger             *zap.Logger
+	tickerCh           <-chan time.Time
+	done               chan struct{}
+	terminated         chan struct{}
+	obsrecv            *obsreport.Receiver
+	recvSettings       receiver.CreateSettings
+	id                 component.ID
+	scrapers           []Scraper
+	obsScrapers        []*obsreport.Scraper
+	collectionInterval time.Duration
+	initialized        bool
 }
 
 // NewScraperControllerReceiver creates a Receiver with the configured options, that can control multiple scrapers.

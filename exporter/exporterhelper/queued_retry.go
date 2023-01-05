@@ -42,15 +42,10 @@ var (
 
 // QueueSettings defines configuration for queueing batches before sending to the consumerSender.
 type QueueSettings struct {
-	// Enabled indicates whether to not enqueue batches before sending to the consumerSender.
-	Enabled bool `mapstructure:"enabled"`
-	// NumConsumers is the number of consumers from the queue.
-	NumConsumers int `mapstructure:"num_consumers"`
-	// QueueSize is the maximum number of batches allowed in queue at a given time.
-	QueueSize int `mapstructure:"queue_size"`
-	// StorageID if not empty, enables the persistent storage and uses the component specified
-	// as a storage extension for the persistent queue
-	StorageID *component.ID `mapstructure:"storage"`
+	StorageID    *component.ID `mapstructure:"storage"`
+	NumConsumers int           `mapstructure:"num_consumers"`
+	QueueSize    int           `mapstructure:"queue_size"`
+	Enabled      bool          `mapstructure:"enabled"`
 }
 
 // NewDefaultQueueSettings returns the default settings for QueueSettings.
@@ -80,17 +75,17 @@ func (qCfg *QueueSettings) Validate() error {
 }
 
 type queuedRetrySender struct {
-	fullName           string
-	id                 component.ID
-	signal             component.DataType
-	cfg                QueueSettings
+	traceAttribute     attribute.KeyValue
 	consumerSender     requestSender
 	queue              internal.ProducerConsumerQueue
 	retryStopCh        chan struct{}
-	traceAttribute     attribute.KeyValue
 	logger             *zap.Logger
-	requeuingEnabled   bool
 	requestUnmarshaler internal.RequestUnmarshaler
+	id                 component.ID
+	fullName           string
+	signal             component.DataType
+	cfg                QueueSettings
+	requeuingEnabled   bool
 }
 
 func newQueuedRetrySender(id component.ID, signal component.DataType, qCfg QueueSettings, rCfg RetrySettings, reqUnmarshaler internal.RequestUnmarshaler, nextSender requestSender, logger *zap.Logger) *queuedRetrySender {
@@ -345,11 +340,11 @@ type onRequestHandlingFinishedFunc func(*zap.Logger, internal.Request, error) er
 
 type retrySender struct {
 	traceAttribute     attribute.KeyValue
-	cfg                RetrySettings
 	nextSender         requestSender
 	stopCh             chan struct{}
 	logger             *zap.Logger
 	onTemporaryFailure onRequestHandlingFinishedFunc
+	cfg                RetrySettings
 }
 
 // send implements the requestSender interface

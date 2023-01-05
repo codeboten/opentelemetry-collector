@@ -35,11 +35,11 @@ var (
 // persistentQueue holds the queue backed by file storage
 type persistentQueue struct {
 	logger     *zap.Logger
-	stopWG     sync.WaitGroup
-	stopOnce   sync.Once
 	stopChan   chan struct{}
-	numWorkers int
 	storage    *persistentContiguousStorage
+	stopWG     sync.WaitGroup
+	numWorkers int
+	stopOnce   sync.Once
 }
 
 // buildPersistentStorageName returns a name that is constructed out of queue name and signal type. This is done

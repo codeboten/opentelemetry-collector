@@ -28,10 +28,10 @@ import (
 // channels, with a special Reaper goroutine that wakes up when the queue is full and consumers
 // the items from the top of the queue until its size drops back to maxSize
 type boundedMemoryQueue struct {
-	stopWG   sync.WaitGroup
 	size     *atomic.Uint32
 	stopped  *atomic.Bool
 	items    chan Request
+	stopWG   sync.WaitGroup
 	capacity uint32
 }
 

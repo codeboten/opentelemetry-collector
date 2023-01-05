@@ -31,11 +31,9 @@ type serviceHost struct {
 	processors        *processor.Builder
 	exporters         *exporter.Builder
 	extensions        *extension.Builder
-
-	buildInfo component.BuildInfo
-
 	pipelines         *builtPipelines
 	serviceExtensions *extensions.Extensions
+	buildInfo         component.BuildInfo
 }
 
 // ReportFatalError is used to report to the host that the receiver encountered

@@ -39,51 +39,19 @@ const headerContentEncoding = "Content-Encoding"
 
 // HTTPClientSettings defines settings for creating an HTTP client.
 type HTTPClientSettings struct {
-	// The target URL to send data to (e.g.: http://some.url:9411/v1/traces).
-	Endpoint string `mapstructure:"endpoint"`
-
-	// TLSSetting struct exposes TLS client configuration.
-	TLSSetting configtls.TLSClientSetting `mapstructure:"tls"`
-
-	// ReadBufferSize for HTTP client. See http.Transport.ReadBufferSize.
-	ReadBufferSize int `mapstructure:"read_buffer_size"`
-
-	// WriteBufferSize for HTTP client. See http.Transport.WriteBufferSize.
-	WriteBufferSize int `mapstructure:"write_buffer_size"`
-
-	// Timeout parameter configures `http.Client.Timeout`.
-	Timeout time.Duration `mapstructure:"timeout"`
-
-	// Additional headers attached to each HTTP request sent by the client.
-	// Existing header values are overwritten if collision happens.
-	// Header values are opaque since they may be sensitive.
-	Headers map[string]configopaque.String `mapstructure:"headers"`
-
-	// Custom Round Tripper to allow for individual components to intercept HTTP requests
-	CustomRoundTripper func(next http.RoundTripper) (http.RoundTripper, error)
-
-	// Auth configuration for outgoing HTTP calls.
-	Auth *configauth.Authentication `mapstructure:"auth"`
-
-	// The compression key for supported compression types within collector.
-	Compression configcompression.CompressionType `mapstructure:"compression"`
-
-	// MaxIdleConns is used to set a limit to the maximum idle HTTP connections the client can keep open.
-	// There's an already set value, and we want to override it only if an explicit value provided
-	MaxIdleConns *int `mapstructure:"max_idle_conns"`
-
-	// MaxIdleConnsPerHost is used to set a limit to the maximum idle HTTP connections the host can keep open.
-	// There's an already set value, and we want to override it only if an explicit value provided
-	MaxIdleConnsPerHost *int `mapstructure:"max_idle_conns_per_host"`
-
-	// MaxConnsPerHost limits the total number of connections per host, including connections in the dialing,
-	// active, and idle states.
-	// There's an already set value, and we want to override it only if an explicit value provided
-	MaxConnsPerHost *int `mapstructure:"max_conns_per_host"`
-
-	// IdleConnTimeout is the maximum amount of time a connection will remain open before closing itself.
-	// There's an already set value, and we want to override it only if an explicit value provided
-	IdleConnTimeout *time.Duration `mapstructure:"idle_conn_timeout"`
+	IdleConnTimeout     *time.Duration                 `mapstructure:"idle_conn_timeout"`
+	Headers             map[string]configopaque.String `mapstructure:"headers"`
+	CustomRoundTripper  func(next http.RoundTripper) (http.RoundTripper, error)
+	Auth                *configauth.Authentication        `mapstructure:"auth"`
+	MaxIdleConnsPerHost *int                              `mapstructure:"max_idle_conns_per_host"`
+	MaxConnsPerHost     *int                              `mapstructure:"max_conns_per_host"`
+	MaxIdleConns        *int                              `mapstructure:"max_idle_conns"`
+	Compression         configcompression.CompressionType `mapstructure:"compression"`
+	Endpoint            string                            `mapstructure:"endpoint"`
+	TLSSetting          configtls.TLSClientSetting        `mapstructure:"tls"`
+	ReadBufferSize      int                               `mapstructure:"read_buffer_size"`
+	WriteBufferSize     int                               `mapstructure:"write_buffer_size"`
+	Timeout             time.Duration                     `mapstructure:"timeout"`
 }
 
 // NewDefaultHTTPClientSettings returns HTTPClientSettings type object with
@@ -204,9 +172,6 @@ func (interceptor *headerRoundTripper) RoundTrip(req *http.Request) (*http.Respo
 
 // HTTPServerSettings defines settings for creating an HTTP server.
 type HTTPServerSettings struct {
-	// Endpoint configures the listening address for the server.
-	Endpoint string `mapstructure:"endpoint"`
-
 	// TLSSetting struct exposes TLS client configuration.
 	TLSSetting *configtls.TLSServerSetting `mapstructure:"tls"`
 
@@ -215,6 +180,9 @@ type HTTPServerSettings struct {
 
 	// Auth for this receiver
 	Auth *configauth.Authentication `mapstructure:"auth"`
+
+	// Endpoint configures the listening address for the server.
+	Endpoint string `mapstructure:"endpoint"`
 
 	// MaxRequestBodySize sets the maximum request body size in bytes
 	MaxRequestBodySize int64 `mapstructure:"max_request_body_size"`

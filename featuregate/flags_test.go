@@ -22,9 +22,9 @@ import (
 
 func TestFlagValue_basic(t *testing.T) {
 	for _, tc := range []struct {
+		output     FlagValue
 		name       string
 		input      string
-		output     FlagValue
 		skipString bool
 	}{
 		{
@@ -76,9 +76,9 @@ func TestFlagValue_basic(t *testing.T) {
 
 func TestFlagValue_withPlus(t *testing.T) {
 	for _, tc := range []struct {
+		input    FlagValue
 		name     string
 		expected string
-		input    FlagValue
 	}{
 		{
 			name:     "single item",

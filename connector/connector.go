@@ -293,32 +293,26 @@ func (f CreateLogsToLogsFunc) CreateLogsToLogs(
 // factory implements Factory.
 type factory struct {
 	component.Factory
-	cfgType component.Type
-	component.CreateDefaultConfigFunc
-
+	CreateLogsToMetricsFunc
 	CreateTracesToTracesFunc
 	CreateTracesToMetricsFunc
 	CreateTracesToLogsFunc
-
 	CreateMetricsToTracesFunc
 	CreateMetricsToMetricsFunc
-	CreateMetricsToLogsFunc
-
-	CreateLogsToTracesFunc
-	CreateLogsToMetricsFunc
 	CreateLogsToLogsFunc
-
-	tracesToTracesStabilityLevel  component.StabilityLevel
-	tracesToMetricsStabilityLevel component.StabilityLevel
-	tracesToLogsStabilityLevel    component.StabilityLevel
-
+	CreateLogsToTracesFunc
+	component.CreateDefaultConfigFunc
+	CreateMetricsToLogsFunc
+	cfgType                        component.Type
+	logsToTracesStabilityLevel     component.StabilityLevel
+	tracesToMetricsStabilityLevel  component.StabilityLevel
+	tracesToLogsStabilityLevel     component.StabilityLevel
 	metricsToTracesStabilityLevel  component.StabilityLevel
 	metricsToMetricsStabilityLevel component.StabilityLevel
 	metricsToLogsStabilityLevel    component.StabilityLevel
-
-	logsToTracesStabilityLevel  component.StabilityLevel
-	logsToMetricsStabilityLevel component.StabilityLevel
-	logsToLogsStabilityLevel    component.StabilityLevel
+	tracesToTracesStabilityLevel   component.StabilityLevel
+	logsToMetricsStabilityLevel    component.StabilityLevel
+	logsToLogsStabilityLevel       component.StabilityLevel
 }
 
 var _ Factory = (*factory)(nil)

@@ -56,23 +56,20 @@ func BuildProcessorCustomMetricName(configType, metric string) string {
 
 // Processor is a helper to add observability to a component.Processor.
 type Processor struct {
-	level    configtelemetry.Level
-	mutators []tag.Mutator
-
-	logger *zap.Logger
-
-	useOtelForMetrics bool
-	otelAttrs         []attribute.KeyValue
-
-	acceptedSpansCounter        syncint64.Counter
-	refusedSpansCounter         syncint64.Counter
-	droppedSpansCounter         syncint64.Counter
-	acceptedMetricPointsCounter syncint64.Counter
 	refusedMetricPointsCounter  syncint64.Counter
-	droppedMetricPointsCounter  syncint64.Counter
-	acceptedLogRecordsCounter   syncint64.Counter
-	refusedLogRecordsCounter    syncint64.Counter
+	acceptedMetricPointsCounter syncint64.Counter
 	droppedLogRecordsCounter    syncint64.Counter
+	refusedLogRecordsCounter    syncint64.Counter
+	acceptedLogRecordsCounter   syncint64.Counter
+	acceptedSpansCounter        syncint64.Counter
+	droppedSpansCounter         syncint64.Counter
+	refusedSpansCounter         syncint64.Counter
+	droppedMetricPointsCounter  syncint64.Counter
+	logger                      *zap.Logger
+	mutators                    []tag.Mutator
+	otelAttrs                   []attribute.KeyValue
+	level                       configtelemetry.Level
+	useOtelForMetrics           bool
 }
 
 // ProcessorSettings are settings for creating a Processor.

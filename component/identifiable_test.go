@@ -29,9 +29,9 @@ func TestMarshalText(t *testing.T) {
 
 func TestUnmarshalText(t *testing.T) {
 	var testCases = []struct {
+		expectedID  ID
 		idStr       string
 		expectedErr bool
-		expectedID  ID
 	}{
 		{
 			idStr:      "valid_type",

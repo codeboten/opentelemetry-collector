@@ -30,14 +30,9 @@ var (
 
 // Config defines the configurable components of the Service.
 type Config struct {
-	// Telemetry is the configuration for collector's own telemetry.
-	Telemetry telemetry.Config `mapstructure:"telemetry"`
-
-	// Extensions are the ordered list of extensions configured for the service.
-	Extensions []component.ID `mapstructure:"extensions"`
-
-	// Pipelines are the set of data pipelines configured for the service.
-	Pipelines map[component.ID]*PipelineConfig `mapstructure:"pipelines"`
+	Pipelines  map[component.ID]*PipelineConfig `mapstructure:"pipelines"`
+	Extensions []component.ID                   `mapstructure:"extensions"`
+	Telemetry  telemetry.Config                 `mapstructure:"telemetry"`
 }
 
 func (cfg *Config) Validate() error {

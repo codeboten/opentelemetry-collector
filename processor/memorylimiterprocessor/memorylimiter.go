@@ -65,30 +65,18 @@ var (
 var getMemoryFn = iruntime.TotalMemory
 
 type memoryLimiter struct {
-	usageChecker memUsageChecker
-
-	memCheckWait time.Duration
-	ballastSize  uint64
-
-	// forceDrop is used atomically to indicate when data should be dropped.
-	forceDrop *atomic.Bool
-
-	ticker *time.Ticker
-
-	lastGCDone time.Time
-
-	// The function to read the mem values is set as a reference to help with
-	// testing different values.
-	readMemStatsFn func(m *runtime.MemStats)
-
-	// Fields used for logging.
+	lastGCDone             time.Time
+	forceDrop              *atomic.Bool
+	ticker                 *time.Ticker
+	readMemStatsFn         func(m *runtime.MemStats)
 	logger                 *zap.Logger
+	obsrep                 *obsreport.Processor
+	usageChecker           memUsageChecker
+	memCheckWait           time.Duration
+	ballastSize            uint64
+	refCounter             int
+	refCounterLock         sync.Mutex
 	configMismatchedLogged bool
-
-	obsrep *obsreport.Processor
-
-	refCounterLock sync.Mutex
-	refCounter     int
 }
 
 // Minimum interval between forced GC when in soft limited mode. We don't want to

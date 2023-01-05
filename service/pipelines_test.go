@@ -38,11 +38,11 @@ import (
 
 func TestBuildPipelines(t *testing.T) {
 	tests := []struct {
+		pipelineConfigs  map[component.ID]*PipelineConfig
 		name             string
 		receiverIDs      []component.ID
 		processorIDs     []component.ID
 		exporterIDs      []component.ID
-		pipelineConfigs  map[component.ID]*PipelineConfig
 		expectedRequests int
 	}{
 		{

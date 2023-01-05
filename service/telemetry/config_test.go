@@ -24,8 +24,8 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	tests := []struct {
-		name    string
 		cfg     *Config
+		name    string
 		success bool
 	}{
 		{

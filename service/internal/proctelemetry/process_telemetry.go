@@ -27,21 +27,18 @@ import (
 
 // processMetrics is a struct that contains views related to process metrics (cpu, mem, etc)
 type processMetrics struct {
+	lastMsRead        time.Time
+	proc              *process.Process
+	processUptime     *metric.Float64DerivedCumulative
+	allocMem          *metric.Int64DerivedGauge
+	totalAllocMem     *metric.Int64DerivedCumulative
+	sysMem            *metric.Int64DerivedGauge
+	cpuSeconds        *metric.Float64DerivedCumulative
+	rssMemory         *metric.Int64DerivedGauge
+	ms                *runtime.MemStats
 	startTimeUnixNano int64
 	ballastSizeBytes  uint64
-	proc              *process.Process
-
-	processUptime *metric.Float64DerivedCumulative
-	allocMem      *metric.Int64DerivedGauge
-	totalAllocMem *metric.Int64DerivedCumulative
-	sysMem        *metric.Int64DerivedGauge
-	cpuSeconds    *metric.Float64DerivedCumulative
-	rssMemory     *metric.Int64DerivedGauge
-
-	// mu protects everything bellow.
-	mu         sync.Mutex
-	lastMsRead time.Time
-	ms         *runtime.MemStats
+	mu                sync.Mutex
 }
 
 // RegisterProcessMetrics creates a new set of processMetrics (mem, cpu) that can be used to measure

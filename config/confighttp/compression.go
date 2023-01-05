@@ -31,8 +31,8 @@ import (
 
 type compressRoundTripper struct {
 	RoundTripper    http.RoundTripper
-	compressionType configcompression.CompressionType
 	writer          func(*bytes.Buffer) (io.WriteCloser, error)
+	compressionType configcompression.CompressionType
 }
 
 func newCompressRoundTripper(rt http.RoundTripper, compressionType configcompression.CompressionType) *compressRoundTripper {

@@ -49,3 +49,7 @@ impi:
 .PHONY: moddownload
 moddownload:
 	$(GOCMD) mod download
+
+.PHONY: align
+align:
+	-fieldalignment -fix .

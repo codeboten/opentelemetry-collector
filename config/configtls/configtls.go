@@ -64,54 +64,29 @@ type TLSSetting struct {
 // connections in addition to the common configurations. This should be used by
 // components configuring TLS client connections.
 type TLSClientSetting struct {
-	// squash ensures fields are correctly decoded in embedded struct.
-	TLSSetting `mapstructure:",squash"`
-
-	// These are config options specific to client connections.
-
-	// In gRPC when set to true, this is used to disable the client transport security.
-	// See https://godoc.org/google.golang.org/grpc#WithInsecure.
-	// In HTTP, this disables verifying the server's certificate chain and host name
-	// (InsecureSkipVerify in the tls Config). Please refer to
-	// https://godoc.org/crypto/tls#Config for more information.
-	// (optional, default false)
-	Insecure bool `mapstructure:"insecure"`
-	// InsecureSkipVerify will enable TLS but not verify the certificate.
+	ServerName         string `mapstructure:"server_name_override"`
+	TLSSetting         `mapstructure:",squash"`
+	Insecure           bool `mapstructure:"insecure"`
 	InsecureSkipVerify bool `mapstructure:"insecure_skip_verify"`
-	// ServerName requested by client for virtual hosting.
-	// This sets the ServerName in the TLSConfig. Please refer to
-	// https://godoc.org/crypto/tls#Config for more information. (optional)
-	ServerName string `mapstructure:"server_name_override"`
 }
 
 // TLSServerSetting contains TLS configurations that are specific to server
 // connections in addition to the common configurations. This should be used by
 // components configuring TLS server connections.
 type TLSServerSetting struct {
-	// squash ensures fields are correctly decoded in embedded struct.
-	TLSSetting `mapstructure:",squash"`
-
-	// These are config options specific to server connections.
-
-	// Path to the TLS cert to use by the server to verify a client certificate. (optional)
-	// This sets the ClientCAs and ClientAuth to RequireAndVerifyClientCert in the TLSConfig. Please refer to
-	// https://godoc.org/crypto/tls#Config for more information. (optional)
 	ClientCAFile string `mapstructure:"client_ca_file"`
+	TLSSetting   `mapstructure:",squash"`
 }
 
 // certReloader is a wrapper object for certificate reloading
 // Its GetCertificate method will either return the current certificate or reload from disk
 // if the last reload happened more than ReloadInterval ago
 type certReloader struct {
-	// Path to the TLS cert
-	CertFile string
-	// Path to the TLS key
-	KeyFile string
-	// ReloadInterval specifies the duration after which the certificate will be reloaded
-	// If not set, it will never be reloaded (optional)
-	ReloadInterval time.Duration
 	nextReload     time.Time
 	cert           *tls.Certificate
+	CertFile       string
+	KeyFile        string
+	ReloadInterval time.Duration
 	lock           sync.RWMutex
 }
 

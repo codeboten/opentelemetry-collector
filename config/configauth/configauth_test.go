@@ -26,9 +26,9 @@ import (
 
 func TestGetServer(t *testing.T) {
 	testCases := []struct {
-		desc          string
 		authenticator extension.Extension
 		expected      error
+		desc          string
 	}{
 		{
 			desc:          "obtain server authenticator",
@@ -77,9 +77,9 @@ func TestGetServerFails(t *testing.T) {
 
 func TestGetClient(t *testing.T) {
 	testCases := []struct {
-		desc          string
 		authenticator extension.Extension
 		expected      error
+		desc          string
 	}{
 		{
 			desc:          "obtain client authenticator",

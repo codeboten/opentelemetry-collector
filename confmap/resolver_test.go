@@ -26,12 +26,12 @@ import (
 )
 
 type mockProvider struct {
-	scheme string
 	retM   interface{}
 	errR   error
 	errS   error
 	errW   error
 	errC   error
+	scheme string
 }
 
 func (m *mockProvider) Retrieve(_ context.Context, _ string, watcher WatcherFunc) (*Retrieved, error) {
@@ -58,8 +58,8 @@ func (m *mockProvider) Shutdown(context.Context) error {
 }
 
 type fakeProvider struct {
-	scheme string
 	ret    func(ctx context.Context, uri string, watcher WatcherFunc) (*Retrieved, error)
+	scheme string
 }
 
 func newFileProvider(t testing.TB) Provider {

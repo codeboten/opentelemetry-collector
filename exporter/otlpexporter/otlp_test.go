@@ -49,12 +49,12 @@ import (
 )
 
 type mockReceiver struct {
+	exportError  error
 	srv          *grpc.Server
 	requestCount *atomic.Int32
 	totalItems   *atomic.Int32
-	mux          sync.Mutex
 	metadata     metadata.MD
-	exportError  error
+	mux          sync.Mutex
 }
 
 func (r *mockReceiver) getMetadata() metadata.MD {
@@ -70,8 +70,8 @@ func (r *mockReceiver) setExportError(err error) {
 }
 
 type mockTracesReceiver struct {
-	mockReceiver
 	lastRequest ptrace.Traces
+	mockReceiver
 }
 
 func (r *mockTracesReceiver) Export(ctx context.Context, req ptraceotlp.ExportRequest) (ptraceotlp.ExportResponse, error) {
@@ -125,8 +125,8 @@ func otlpTracesReceiverOnGRPCServer(ln net.Listener, useTLS bool) (*mockTracesRe
 }
 
 type mockLogsReceiver struct {
-	mockReceiver
 	lastRequest plog.Logs
+	mockReceiver
 }
 
 func (r *mockLogsReceiver) Export(ctx context.Context, req plogotlp.ExportRequest) (plogotlp.ExportResponse, error) {
@@ -165,8 +165,8 @@ func otlpLogsReceiverOnGRPCServer(ln net.Listener) *mockLogsReceiver {
 }
 
 type mockMetricsReceiver struct {
-	mockReceiver
 	lastRequest pmetric.Metrics
+	mockReceiver
 }
 
 func (r *mockMetricsReceiver) Export(ctx context.Context, req pmetricotlp.ExportRequest) (pmetricotlp.ExportResponse, error) {
@@ -280,9 +280,9 @@ func TestSendTraces(t *testing.T) {
 func TestSendTracesWhenEndpointHasHttpScheme(t *testing.T) {
 	tests := []struct {
 		name               string
-		useTLS             bool
 		scheme             string
 		gRPCClientSettings configgrpc.GRPCClientSettings
+		useTLS             bool
 	}{
 		{
 			name:               "Use https scheme",

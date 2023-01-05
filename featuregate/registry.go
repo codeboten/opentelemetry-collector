@@ -27,8 +27,8 @@ func GetRegistry() *Registry {
 }
 
 type Registry struct {
-	mu    sync.RWMutex
 	gates map[string]Gate
+	mu    sync.RWMutex
 }
 
 // NewRegistry returns a new empty Registry.

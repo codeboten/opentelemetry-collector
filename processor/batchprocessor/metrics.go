@@ -105,17 +105,15 @@ func metricViews() []*view.View {
 }
 
 type batchProcessorTelemetry struct {
-	level    configtelemetry.Level
-	detailed bool
-	useOtel  bool
-
-	exportCtx context.Context
-
-	processorAttr        []attribute.KeyValue
+	exportCtx            context.Context
 	batchSizeTriggerSend syncint64.Counter
 	timeoutTriggerSend   syncint64.Counter
 	batchSendSize        syncint64.Histogram
 	batchSendSizeBytes   syncint64.Histogram
+	processorAttr        []attribute.KeyValue
+	level                configtelemetry.Level
+	detailed             bool
+	useOtel              bool
 }
 
 func newBatchProcessorTelemetry(set processor.CreateSettings, registry *featuregate.Registry) (*batchProcessorTelemetry, error) {

@@ -139,9 +139,9 @@ var traceOtlp = func() ptrace.Traces {
 
 func TestJsonHttp(t *testing.T) {
 	tests := []struct {
+		err      error
 		name     string
 		encoding string
-		err      error
 	}{
 		{
 			name:     "JSONUncompressed",
@@ -221,13 +221,12 @@ func TestHandleInvalidRequests(t *testing.T) {
 	require.NoError(t, lr.Start(context.Background(), componenttest.NewNopHost()))
 
 	tests := []struct {
-		name        string
-		uri         string
-		method      string
-		contentType string
-
-		expectedStatus       int
+		name                 string
+		uri                  string
+		method               string
+		contentType          string
 		expectedResponseBody string
+		expectedStatus       int
 	}{
 		{
 			name:        "POST /v1/traces, no content type",
@@ -384,9 +383,9 @@ func testHTTPJSONRequest(t *testing.T, url string, sink *errOrSinkConsumer, enco
 
 func TestProtoHttp(t *testing.T) {
 	tests := []struct {
+		err      error
 		name     string
 		encoding string
-		err      error
 	}{
 		{
 			name:     "ProtoUncompressed",
@@ -505,11 +504,11 @@ func testHTTPProtobufRequest(
 
 func TestOTLPReceiverInvalidContentEncoding(t *testing.T) {
 	tests := []struct {
+		reqBodyFunc func() (*bytes.Buffer, error)
+		resBodyFunc func() ([]byte, error)
 		name        string
 		content     string
 		encoding    string
-		reqBodyFunc func() (*bytes.Buffer, error)
-		resBodyFunc func() ([]byte, error)
 		status      int
 	}{
 		{
@@ -1051,10 +1050,10 @@ func exportTraces(cc *grpc.ClientConn, td ptrace.Traces) error {
 }
 
 type errOrSinkConsumer struct {
+	consumeError error
 	*consumertest.TracesSink
 	*consumertest.MetricsSink
-	mu           sync.Mutex
-	consumeError error // to be returned by ConsumeTraces, if set
+	mu sync.Mutex
 }
 
 // SetConsumeError sets an error that will be returned by the Consume function.

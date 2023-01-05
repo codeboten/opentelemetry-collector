@@ -37,38 +37,23 @@ import (
 
 // Settings holds configuration for building a new service.
 type Settings struct {
-	// BuildInfo provides collector start information.
-	BuildInfo component.BuildInfo
-
-	// Receivers builder for receivers.
-	Receivers *receiver.Builder
-
-	// Processors builder for processors.
-	Processors *processor.Builder
-
-	// Exporters builder for exporters.
-	Exporters *exporter.Builder
-
-	// Extensions builder for extensions.
-	Extensions *extension.Builder
-
-	// AsyncErrorChannel is the channel that is used to report fatal errors.
+	Receivers         *receiver.Builder
+	Processors        *processor.Builder
+	Exporters         *exporter.Builder
+	Extensions        *extension.Builder
 	AsyncErrorChannel chan error
-
-	// LoggingOptions provides a way to change behavior of zap logging.
-	LoggingOptions []zap.Option
-
-	// For testing purpose only.
-	registry *featuregate.Registry
+	registry          *featuregate.Registry
+	BuildInfo         component.BuildInfo
+	LoggingOptions    []zap.Option
 }
 
 // Service represents the implementation of a component.Host.
 type Service struct {
-	buildInfo            component.BuildInfo
 	telemetry            *telemetry.Telemetry
-	telemetrySettings    component.TelemetrySettings
 	host                 *serviceHost
 	telemetryInitializer *telemetryInitializer
+	buildInfo            component.BuildInfo
+	telemetrySettings    component.TelemetrySettings
 }
 
 func New(ctx context.Context, set Settings, cfg Config) (*Service, error) {

@@ -190,8 +190,8 @@ func (f CreateDefaultConfigFunc) CreateDefaultConfig() Config {
 }
 
 type baseFactory struct {
-	cfgType Type
 	CreateDefaultConfigFunc
+	cfgType Type
 }
 
 func (baseFactory) unexportedFactoryFunc() {}

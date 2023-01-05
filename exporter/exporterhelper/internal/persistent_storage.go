@@ -49,24 +49,20 @@ import (
 //	 index          index   x
 //	                        xxxx deleted
 type persistentContiguousStorage struct {
-	logger      *zap.Logger
-	queueName   string
-	client      storage.Client
-	unmarshaler RequestUnmarshaler
-
-	putChan  chan struct{}
-	stopChan chan struct{}
-	stopOnce sync.Once
-	capacity uint64
-
-	reqChan chan Request
-
-	mu                       sync.Mutex
+	client                   storage.Client
+	unmarshaler              RequestUnmarshaler
+	putChan                  chan struct{}
+	stopChan                 chan struct{}
+	logger                   *zap.Logger
+	reqChan                  chan Request
+	itemsCount               *atomic.Uint64
+	queueName                string
+	currentlyDispatchedItems []itemIndex
+	capacity                 uint64
 	readIndex                itemIndex
 	writeIndex               itemIndex
-	currentlyDispatchedItems []itemIndex
-
-	itemsCount *atomic.Uint64
+	stopOnce                 sync.Once
+	mu                       sync.Mutex
 }
 
 type itemIndex uint64

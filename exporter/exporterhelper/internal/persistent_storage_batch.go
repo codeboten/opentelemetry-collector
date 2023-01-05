@@ -29,11 +29,10 @@ var errItemIndexArrInvalidDataType = errors.New("invalid data type, expected []i
 
 // batchStruct provides convenience capabilities for creating and processing storage extension batches
 type batchStruct struct {
-	logger *zap.Logger
-	pcs    *persistentContiguousStorage
-
-	operations    []storage.Operation
+	logger        *zap.Logger
+	pcs           *persistentContiguousStorage
 	getOperations map[string]storage.Operation
+	operations    []storage.Operation
 }
 
 func newBatch(pcs *persistentContiguousStorage) *batchStruct {

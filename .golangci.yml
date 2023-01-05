@@ -70,8 +70,8 @@ linters-settings:
 
     enable-all: true
     # TODO: Enable this and fix the alignment issues.
-    disable:
-      - fieldalignment
+    # disable:
+    #   - fieldalignment
 
   revive:
     # minimal confidence for issues, default is 0.8
