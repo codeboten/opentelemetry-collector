@@ -2,9 +2,23 @@ name: prepare-release
 
 on:
   workflow_dispatch:
+    inputs:
+      candidate-stable:
+        required: true
+        description: Release candidate version (stable)
+      current-stable:
+        required: true
+        description: Current version (stable)
+      candidate-beta:
+        required: true
+        description: Release candidate version (stable)
+      current-beta:
+        required: true
+        description: Current version (stable)
 
 jobs:
   prepare-release:
+    runs-on: ubuntu-latest
     steps:
       - name: Check blockers in core
         run: |
