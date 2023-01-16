@@ -24,7 +24,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $( gh issue list --search "label:bug" --json url --jq '.[].title' --repo open-telemetry/opentelemetry-collector ) >> $BLOCKERS
+          echo "BLOCKERS=$( gh issue list --search "label:bug" --json url --jq '.[].title' --repo open-telemetry/opentelemetry-collector )" >> $GITHUB_ENV
           if [ "${BLOCKERS}" != "" ]; then
               echo "Release blockers in opentelemetry-collector repo: ${BLOCKERS}"
               exit 1
@@ -33,7 +33,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $( gh issue list --search "label:bug" --json url --jq '.[].title' --repo open-telemetry/opentelemetry-collector-contrib ) >> $BLOCKERS
+          echo "BLOCKERS=$( gh issue list --search "label:bug" --json url --jq '.[].title' --repo open-telemetry/opentelemetry-collector-contrib )" >> $GITHUB_ENV
           if [ "${BLOCKERS}" != "" ]; then
               echo "Release blockers in opentelemetry-collector-contrib repo: ${BLOCKERS}"
               exit 1
