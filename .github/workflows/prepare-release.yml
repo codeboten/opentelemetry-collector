@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check blockers in core
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           blockers=$( gh issue list --search "label:bug" --json url --jq '.[].title' )
           if [ "${blockers}" != "" ]; then
@@ -28,6 +30,8 @@ jobs:
               exit 1
           fi
       - name: Check blockers in contrib
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           blockers=$( gh issue list --search "label:bug" --json url --jq '.[].title' --repo open-telemetry/opentelemetry-collector-contrib )
           if [ "${blockers}" != "" ]; then
