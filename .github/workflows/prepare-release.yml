@@ -115,6 +115,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: open-telemetry/opentelemetry-collector-contrib
         run: "echo TODO" # TODO: This may require a webhook in contrib
+      - uses: actions/checkout@v3
       # Prepare Core for release.
       #   - Update CHANGELOG.md file, this is done via chloggen
       #   - Update the version numbers in cmd/builder/test/core.builder.yaml
