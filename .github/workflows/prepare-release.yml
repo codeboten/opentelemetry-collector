@@ -136,11 +136,11 @@ jobs:
         run: |
           make chlog-install
           make chlog-update VERSION=${CANDIDATE_BETA}/${CANDIDATE_STABLE}
-          make prepare-release GH=none PREVIOUS_VERSION=${CURRENT_STABLE} RELEASE_CANDIDATE=${CANDIDATE_STABLE} MODSET=stable
-          make prepare-release GH=none PREVIOUS_VERSION=${CURRENT_BETA} RELEASE_CANDIDATE=${CANDIDATE_BETA} MODSET=beta
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
           git add --all
-          git commit -m "Prepare release ${CANDIDATE_BETA}/${CANDIDATE_STABLE}"
+          git commit -m "Changelog update ${CANDIDATE_BETA}/${CANDIDATE_STABLE}"
+          make prepare-release GH=none PREVIOUS_VERSION=${CURRENT_STABLE} RELEASE_CANDIDATE=${CANDIDATE_STABLE} MODSET=stable
+          make prepare-release GH=none PREVIOUS_VERSION=${CURRENT_BETA} RELEASE_CANDIDATE=${CANDIDATE_BETA} MODSET=beta
           git push origin "prepare-release-prs/${CANDIDATE_BETA}-${CANDIDATE_STABLE}"
           gh pr create --title "[chore] Prepare release ${CANDIDATE_BETA}/${CANDIDATE_STABLE}"
