@@ -440,12 +440,6 @@ endif
 	$(MAKE) genotelcorecol
 	git add .
 	git commit -m "add multimod changes" || (echo "no multimod changes to commit")
-	git push fork opentelemetry-collector-bot/release-$(RELEASE_CANDIDATE)
-	@if [ -z "$(GH)" ]; then \
-		echo "'gh' command not found, can't submit the PR on your behalf."; \
-		exit 1; \
-	fi
-	$(GH) pr create --title "[chore] prepare release $(RELEASE_CANDIDATE)"
 
 .PHONY: clean
 clean:
