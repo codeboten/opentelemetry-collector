@@ -4,6 +4,12 @@
 
 <!-- next version -->
 
+## 0.70.0/1.0.0-rc4
+
+### 💡 Enhancements 💡
+
+- `connector`: Add Builder (#6867)
+
 ## v0.69.1
 
 ### 🧰 Bug fixes 🧰
