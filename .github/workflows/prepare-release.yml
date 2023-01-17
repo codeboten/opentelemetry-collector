@@ -116,6 +116,10 @@ jobs:
           REPO: open-telemetry/opentelemetry-collector-contrib
         run: "echo TODO" # TODO: This may require a webhook in contrib
       - uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
       # Prepare Core for release.
       #   - Update CHANGELOG.md file, this is done via chloggen
       #   - Update the version numbers in cmd/builder/test/core.builder.yaml
