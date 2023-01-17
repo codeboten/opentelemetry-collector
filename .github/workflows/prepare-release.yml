@@ -18,27 +18,9 @@ on:
         required: true
         description: Current version (stable)
 
-#     Update Contrib to use the latest in development version of Core. Run make update-otel in Contrib root directory and if it results in any changes, submit a PR. Open this PR as draft. This is to ensure that the latest core does not break contrib in any way. We’ll update it once more to the final release number later.
-
-#     Prepare Core for release.
-
-#         Update CHANGELOG.md file, this is done via chloggen. Run the following command from the root of the opentelemetry-collector-contrib repo:
-#             make chlog-update VERSION=v0.55.0
-
-#         Update the version numbers in cmd/builder/test/core.builder.yaml
-
-#         Run make prepare-release PREVIOUS_VERSION=1.0.0 RELEASE_CANDIDATE=1.1.0 MODSET=stable
-
-#         Run make prepare-release PREVIOUS_VERSION=0.52.0 RELEASE_CANDIDATE=0.53.0 MODSET=beta
-
-#         Ensure the main branch builds successfully.
-
 #     Create a branch named release/<release-series> (e.g. release/v0.45.x) from the changelog update commit and push to open-telemetry/opentelemetry-collector.
-
 #     Tag all the module groups (stable, beta) with the new release version by running the make push-tags command (e.g. make push-tags MODSET=stable and make push-tags MODSET=beta). Wait for the new tag build to pass successfully.
-
 #     The release script for the collector builder should create a new GitHub release for the builder. This is a separate release from the core, but we might join them in the future if it makes sense.
-
 #     A new v0.55.0 release should be automatically created on Github by now. Edit it and use the contents from the CHANGELOG.md as the release's description. At the top of the release's changelog, add a link to the releases repository where the binaries and other artifacts are landing, like:
 
 jobs:
@@ -88,7 +70,7 @@ jobs:
         run: |
           BLOCKERS=$( gh issue list --search "label:release:blocker" --json url --jq '.[].url' --repo ${REPO} )
           if [ "${BLOCKERS}" != "" ]; then
-              echo "Release blockers in opentelemetry-collector repo: ${BLOCKERS}"
+              echo "Release blockers in ${REPO} repo: ${BLOCKERS}"
               exit 1
           fi
       # Make sure that there are no open issues with release:blocker label in Contrib. The release has to be delayed until they are resolved.
@@ -99,8 +81,60 @@ jobs:
         run: |
           BLOCKERS=$( gh issue list --search "label:release:blocker" --json url --jq '.[].url' --repo ${REPO} )
           if [ "${BLOCKERS}" != "" ]; then
-              echo "Release blockers in opentelemetry-collector-contrib repo: ${BLOCKERS}"
+              echo "Release blockers in ${REPO} repo: ${BLOCKERS}"
               exit 1
           fi
       # Make sure the current main branch build successfully passes (Core).
+      - name: Check build status in core
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: open-telemetry/opentelemetry-collector
+        run: |
+          RESULT=$(gh run list --branch main --workflow build-and-test  --limit 1 --json status --jq '.[].status' --repo ${REPO} )
+          if [ "${RESULT}" != "completed" ]; then
+              echo "Build status in ${REPO} is not completed: ${RESULT}"
+              exit 1
+          fi
       # Make sure the current main branch build successfully passes (Contrib).
+      - name: Check build status in contrib
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: open-telemetry/opentelemetry-collector-contrib
+        run: |
+          RESULT=$(gh run list --branch main --workflow build-and-test  --limit 1 --json status --jq '.[].status' --repo ${REPO} )
+          if [ "${RESULT}" != "completed" ]; then
+              echo "Build status in ${REPO} is not completed: ${RESULT}"
+              exit 1
+          fi
+      # Update Contrib to use the latest in development version of Core. Run make update-otel in
+      # Contrib root directory and if it results in any changes, submit a PR. Open this PR as draft.
+      # This is to ensure that the latest core does not break contrib in any way. We’ll update it
+      # once more to the final release number later.
+      - name: Make update-otel in contrib
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: open-telemetry/opentelemetry-collector-contrib
+        run: "echo TODO" # TODO: This may require a webhook in contrib
+      # Prepare Core for release.
+      #   - Update CHANGELOG.md file, this is done via chloggen
+      #   - Update the version numbers in cmd/builder/test/core.builder.yaml
+      #   - Run make prepare-release PREVIOUS_VERSION=1.0.0 RELEASE_CANDIDATE=1.1.0 MODSET=stable
+      #   - Run make prepare-release PREVIOUS_VERSION=0.52.0 RELEASE_CANDIDATE=0.53.0 MODSET=beta
+      - name: Prepare release for core
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: open-telemetry/opentelemetry-collector
+          CANDIDATE_BETA: ${{ inputs.candidate-beta }}
+          CANDIDATE_STABLE: ${{ inputs.candidate-stable }}
+          CURRENT_BETA: ${{ inputs.current-beta }}
+          CURRENT_STABLE: ${{ inputs.current-stable }}
+        run: |
+          make chlog-update VERSION=${CANDIDATE_BETA}/${CANDIDATE_STABLE}
+          make prepare-release GH=none PREVIOUS_VERSION=${CURRENT_STABLE} RELEASE_CANDIDATE=${CANDIDATE_STABLE} MODSET=stable
+          make prepare-release GH=none PREVIOUS_VERSION=${CURRENT_BETA} RELEASE_CANDIDATE=${CANDIDATE_BETA} MODSET=beta
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git add --all
+          git commit -m "Prepare release ${CANDIDATE_BETA}/${CANDIDATE_STABLE}"
+          git push origin "prepare-release-prs/${CANDIDATE_BETA}-${CANDIDATE_STABLE}"
+          gh pr create --title "[chore] Prepare release ${CANDIDATE_BETA}/${CANDIDATE_STABLE}"
