@@ -422,8 +422,6 @@ else
 endif
 	# ensure a clean branch
 	git diff -s --exit-code || (echo "local repository not clean"; exit 1)
-	# TODO: update changelog
-	# update versions.yaml config.go builder-config.yaml
 	sed -i.bak 's/$(PREVIOUS_VERSION)/$(RELEASE_CANDIDATE)/g' versions.yaml
 	sed -i.bak 's/$(PREVIOUS_VERSION)/$(RELEASE_CANDIDATE)/g' ./cmd/builder/internal/builder/config.go
 	sed -i.bak 's/$(PREVIOUS_VERSION)/$(RELEASE_CANDIDATE)/g' ./cmd/builder/test/core.builder.yaml
@@ -431,7 +429,6 @@ endif
 	sed -i.bak 's/$(PREVIOUS_VERSION)/$(RELEASE_CANDIDATE)/g' examples/k8s/otel-config.yaml
 	find . -name "*.bak" -type f -delete
 	# commit changes before running multimod
-	git checkout -b opentelemetry-collector-bot/release-$(RELEASE_CANDIDATE)
 	git add .
 	git commit -m "prepare release $(RELEASE_CANDIDATE)"
 	$(MAKE) multimod-prerelease
@@ -439,7 +436,7 @@ endif
 	$(MAKE) -C cmd/builder config
 	$(MAKE) genotelcorecol
 	git add .
-	git commit -m "add multimod changes" || (echo "no multimod changes to commit")
+	git commit -m "add multimod changes $(RELEASE_CANDIDATE)" || (echo "no multimod changes to commit")
 
 .PHONY: clean
 clean:
