@@ -90,24 +90,24 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: open-telemetry/opentelemetry-collector
         run: |
-          RESULT=$(gh run list --branch main --workflow build-and-test  --limit 1 --json status --jq '.[].status' --repo ${REPO} )
+          RESULT=$(gh run list --branch main --json status --jq '[.[] | select(.status != "queued" and .status != "in_progress")][0].status' --workflow build-and-test --repo ${REPO} )
           if [ "${RESULT}" != "completed" ]; then
               echo "Build status in ${REPO} is not completed: ${RESULT}"
-              echo "$(gh run list --branch main --workflow build-and-test --limit 1 --json url --jq '.[].url' --repo ${REPO} )"
+              echo "$(gh run list --branch main --json status,url --jq '[.[] | select(.status != "queued" and .status != "in_progress")][0].url' --workflow build-and-test --repo ${REPO} )"
               exit 1
           fi
       # Make sure the current main branch build successfully passes (Contrib).
-#       - name: Check build status in contrib
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#           REPO: open-telemetry/opentelemetry-collector-contrib
-#         run: |
-#           RESULT=$(gh run list --branch main --workflow build-and-test --limit 1 --json status --jq '.[].status' --repo ${REPO} )
-#           if [ "${RESULT}" != "completed" ]; then
-#               echo "Build status in ${REPO} is not completed: ${RESULT}"
-#               echo "$(gh run list --branch main --workflow build-and-test --limit 1 --json url --jq '.[].url' --repo ${REPO} )"
-#               exit 1
-#           fi
+      - name: Check build status in contrib
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: open-telemetry/opentelemetry-collector-contrib
+        run: |
+          RESULT=$(gh run list --branch main --json status --jq '[.[] | select(.status != "queued" and .status != "in_progress")][0].status' --workflow build-and-test --repo ${REPO} )
+          if [ "${RESULT}" != "completed" ]; then
+              echo "Build status in ${REPO} is not completed: ${RESULT}"
+              echo "$(gh run list --branch main --json status,url --jq '[.[] | select(.status != "queued" and .status != "in_progress")][0].url' --workflow build-and-test --repo ${REPO} )"
+              exit 1
+          fi
       # Update Contrib to use the latest in development version of Core. Run make update-otel in
       # Contrib root directory and if it results in any changes, submit a PR. Open this PR as draft.
       # This is to ensure that the latest core does not break contrib in any way. We’ll update it
