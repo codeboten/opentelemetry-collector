@@ -130,6 +130,7 @@ jobs:
           CURRENT_BETA: ${{ inputs.current-beta }}
           CURRENT_STABLE: ${{ inputs.current-stable }}
         run: |
+          make chlog-install
           make chlog-update VERSION=${CANDIDATE_BETA}/${CANDIDATE_STABLE}
           make prepare-release GH=none PREVIOUS_VERSION=${CURRENT_STABLE} RELEASE_CANDIDATE=${CANDIDATE_STABLE} MODSET=stable
           make prepare-release GH=none PREVIOUS_VERSION=${CURRENT_BETA} RELEASE_CANDIDATE=${CANDIDATE_BETA} MODSET=beta
