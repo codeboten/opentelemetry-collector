@@ -12,25 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testcomponents
+//go:build !linux && !darwin && !windows
+// +build !linux,!darwin,!windows
 
-import (
-	"context"
-	"testing"
+package loggingexporter // import "go.opentelemetry.io/collector/exporter/loggingexporter"
 
-	"github.com/stretchr/testify/assert"
-
-	"go.opentelemetry.io/collector/component/componenttest"
-)
-
-func TestExampleProcessor(t *testing.T) {
-	prc := &ExampleProcessor{}
-	host := componenttest.NewNopHost()
-	assert.False(t, prc.Started())
-	assert.NoError(t, prc.Start(context.Background(), host))
-	assert.True(t, prc.Started())
-
-	assert.False(t, prc.Stopped())
-	assert.NoError(t, prc.Shutdown(context.Background()))
-	assert.True(t, prc.Stopped())
+// knownSyncError returns true if the given error is one of the known
+// non-actionable errors returned by Sync on Plan 9.
+func knownSyncError(err error) bool {
+	return false
 }

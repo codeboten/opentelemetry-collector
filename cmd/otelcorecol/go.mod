@@ -8,6 +8,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/collector v0.69.1
 	go.opentelemetry.io/collector/component v0.69.1
+	go.opentelemetry.io/collector/connector/forwardconnector v0.69.1
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.69.1
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.69.1
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.69.1
@@ -83,8 +84,8 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
-	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
-	google.golang.org/grpc v1.51.0 // indirect
+	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
+	google.golang.org/grpc v1.52.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -97,6 +98,8 @@ replace go.opentelemetry.io/collector/component => ../../component
 replace go.opentelemetry.io/collector/confmap => ../../confmap
 
 replace go.opentelemetry.io/collector/consumer => ../../consumer
+
+replace go.opentelemetry.io/collector/connector/forwardconnector => ../../connector/forwardconnector
 
 replace go.opentelemetry.io/collector/exporter/loggingexporter => ../../exporter/loggingexporter
 
