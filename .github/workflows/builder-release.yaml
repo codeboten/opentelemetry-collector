@@ -20,7 +20,7 @@ jobs:
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
-          # distribution: goreleaser-pro
+          distribution: goreleaser-pro
           version: latest
           args: release --rm-dist -f cmd/builder/.goreleaser.yml
         env:
