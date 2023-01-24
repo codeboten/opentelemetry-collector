@@ -34,31 +34,31 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CANDIDATE_BETA: ${{ inputs.candidate-beta }}
           CANDIDATE_STABLE: ${{ inputs.candidate-stable }}
-          REPO: open-telemetry/opentelemetry-collector
+          REPO: codeboten/opentelemetry-collector
         run: ./.github/workflows/scripts/release-create-tracking-issue.sh
       # Make sure that there are no open issues with release:blocker label in Core. The release has to be delayed until they are resolved.
       - name: Check blockers in core
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: open-telemetry/opentelemetry-collector
+          REPO: codeboten/opentelemetry-collector
         run: ./.github/workflows/scripts/release-check-blockers.sh
       # Make sure that there are no open issues with release:blocker label in Contrib. The release has to be delayed until they are resolved.
       - name: Check blockers in contrib
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: open-telemetry/opentelemetry-collector-contrib
+          REPO: codeboten/opentelemetry-collector-contrib
         run: ./.github/workflows/scripts/release-check-blockers.sh
       # Make sure the current main branch build successfully passes (Core).
       - name: Check build status in core
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: open-telemetry/opentelemetry-collector
+          REPO: codeboten/opentelemetry-collector
         run: ./.github/workflows/scripts/release-check-build-status.sh
       # Make sure the current main branch build successfully passes (Contrib).
       - name: Check build status in contrib
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: open-telemetry/opentelemetry-collector-contrib
+          REPO: codeboten/opentelemetry-collector-contrib
         run: ./.github/workflows/scripts/release-check-build-status.sh
       - name: Setup Go
         uses: actions/setup-go@v3
@@ -71,7 +71,7 @@ jobs:
       - name: Prepare release for core
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: open-telemetry/opentelemetry-collector
+          REPO: codeboten/opentelemetry-collector
           CANDIDATE_BETA: ${{ inputs.candidate-beta }}
           CANDIDATE_STABLE: ${{ inputs.candidate-stable }}
           CURRENT_BETA: ${{ inputs.current-beta }}
