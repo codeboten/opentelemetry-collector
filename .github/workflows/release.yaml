@@ -24,7 +24,7 @@ jobs:
       - name: Push release branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: open-telemetry/opentelemetry-collector
+          REPO: codeboten/opentelemetry-collector
           COMMIT: "${{ inputs.git-commit }}"
           CANDIDATE_STABLE: "${{ inputs.candidate-stable }}"
           CANDIDATE_BETA: "${{ inputs.candidate-beta }}"
