@@ -23,7 +23,7 @@ jobs:
       # Create a branch named `release/<release-series>` (e.g. `release/v0.45.x`) from the changelog update commit and push to `open-telemetry/opentelemetry-collector`.
       - name: Push release branch
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CODEBOTEN_COLLECTOR_TOKEN }}
           REPO: codeboten/opentelemetry-collector
           COMMIT: "${{ inputs.git-commit }}"
           CANDIDATE_STABLE: "${{ inputs.candidate-stable }}"
@@ -33,11 +33,11 @@ jobs:
       # command (e.g. `make push-tags MODSET=stable` and `make push-tags MODSET=beta`). Wait for the new tag build to pass successfully.
       - name: Push tags for beta modules
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CODEBOTEN_COLLECTOR_TOKEN }}
           MODSET: beta
         run: ./.github/workflows/scripts/release-push-tags.sh
       - name: Push tags for stable modules
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CODEBOTEN_COLLECTOR_TOKEN }}
           MODSET: stable
         run: ./.github/workflows/scripts/release-push-tags.sh
