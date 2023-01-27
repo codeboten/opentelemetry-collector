@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.git-commit }}
       # Create a branch named `release/<release-series>` (e.g. `release/v0.45.x`) from the changelog update commit and push to `open-telemetry/opentelemetry-collector`.
       - name: Push release branch
         env:
