@@ -3,7 +3,7 @@ module go.opentelemetry.io/collector/component
 go 1.18
 
 require (
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	go.opentelemetry.io/collector v0.70.0
 	go.opentelemetry.io/collector/confmap v0.70.0
 	go.opentelemetry.io/otel/metric v0.34.0
