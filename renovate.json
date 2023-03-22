@@ -24,7 +24,7 @@
   "separateMajorMinor": true,
   "postUpgradeTasks": {
     "commands": [
-      "make gotidy",
+      "make gotidy"
     ],
     "fileFilters": ["**/**"]
   }
