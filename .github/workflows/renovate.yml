@@ -13,4 +13,5 @@ jobs:
         uses: renovatebot/github-action@v36.0.0
         with:
           renovate-version: 35.0.0
+          configurationFile: .github/renovate-config.js
           token: ${{ secrets.CODEBOTEN_COLLECTOR_TOKEN }}
