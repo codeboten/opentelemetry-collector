@@ -16,4 +16,4 @@ jobs:
         with:
           renovate-version: 35.0.0
           configurationFile: .github/renovate-config.js
-          token: ${{ secrets.CODEBOTEN_COLLECTOR_TOKEN }}
+          token: ${{ secrets.RENO_TOKEN }}
