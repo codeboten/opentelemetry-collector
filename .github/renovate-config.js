@@ -6,7 +6,6 @@ module.exports = {
   onboarding: false,
   platform: 'github',
   includeForks: true,
-  dryRun: 'full',
   repositories: [
     'codeboten/opentelemetry-collector',
   ],
