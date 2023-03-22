@@ -1,4 +1,5 @@
 module.exports = {
+  allowedPostUpgradeCommands: ['make gotidy'],
   branchPrefix: 'test-renovate/',
   username: 'renovate-release',
   gitAuthor: 'Renovate Bot <bot@renovateapp.com>',
