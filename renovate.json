@@ -22,7 +22,10 @@
     }
   ],
   "separateMajorMinor": true,
-  "postUpdateOptions": [
-    "gomodTidy1.19"
-  ]
+  "postUpgradeTasks": {
+    "commands": [
+      "make gotidy",
+    ],
+    "fileFilters": ["**/**"]
+  }
 }
