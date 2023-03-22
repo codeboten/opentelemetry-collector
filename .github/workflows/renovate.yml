@@ -7,8 +7,8 @@ jobs:
   renovate:
     runs-on: ubuntu-latest
     steps:
-      - name: actions/checkout@v3.3.0
-      - name: actions/setup-go@v3
+      - uses: actions/checkout@v3.3.0
+      - uses: actions/setup-go@v3
         with:
           go-version: ~1.19.6
       - name: Self-hosted Renovate
