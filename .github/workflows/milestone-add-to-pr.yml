@@ -23,8 +23,7 @@ jobs:
             for (const milestone of milestones.data) {
               console.log(milestone)
               if (milestone.title.startsWith("v")) {
-                console.log("found it")
-                await github.issues.update({
+                await github.rest.issues.update({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: ${{ github.event.pull_request.number }},
