@@ -22,7 +22,7 @@ jobs:
             })
             for (const milestone of milestones) {
               console.log(milestone)
-              if milestone.title.startsWith("v") {
+              if (milestone.title.startsWith("v")) {
                 console.log("found it")
                 //await github.issues.update({
                   //owner: context.repo.owner,
