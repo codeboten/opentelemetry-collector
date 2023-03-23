@@ -20,6 +20,7 @@ jobs:
               repo: context.repo.repo,
               state: "open"
             })
+            console.log(milestones)
             for (const milestone of milestones) {
               console.log(milestone)
               if (milestone.title.startsWith("v")) {
