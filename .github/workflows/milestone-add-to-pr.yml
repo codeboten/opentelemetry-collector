@@ -21,13 +21,15 @@ jobs:
               state: "open"
             })
             for (const milestone of milestones) {
+              console.log(milestone)
               if milestone.title.startsWith("v") {
-                await github.issues.update({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: ${{ github.event.pull_request.number }},
-                  milestone: milestone.number,
-                });
-                return
+                console.log("found it")
+                //await github.issues.update({
+                  //owner: context.repo.owner,
+                  //repo: context.repo.repo,
+                  //issue_number: ${{ github.event.pull_request.number }},
+                  //milestone: milestone.number
+                //});
+                //return
               }
             }
