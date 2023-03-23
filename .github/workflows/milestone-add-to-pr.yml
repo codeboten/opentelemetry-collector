@@ -15,7 +15,7 @@ jobs:
       - uses: actions/github-script@v6
         with:
           script: |
-            const milestones = github.rest.issues.listMilestones({
+            const milestones = await github.rest.issues.listMilestones({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: "open"
@@ -25,12 +25,12 @@ jobs:
               console.log(milestone)
               if (milestone.title.startsWith("v")) {
                 console.log("found it")
-                //await github.issues.update({
-                  //owner: context.repo.owner,
-                  //repo: context.repo.repo,
-                  //issue_number: ${{ github.event.pull_request.number }},
-                  //milestone: milestone.number
-                //});
-                //return
+                await github.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: ${{ github.event.pull_request.number }},
+                  milestone: milestone.number
+                });
+                return
               }
             }
