@@ -12,7 +12,7 @@ jobs:
         with:
           go-version: ~1.19.6
       - name: Self-hosted Renovate
-        uses: renovatebot/github-action@v36.0.0
+        uses: renovatebot/github-action@v36.0.2
         with:
           renovate-version: 35.0.0
           configurationFile: .github/renovate-config.js
