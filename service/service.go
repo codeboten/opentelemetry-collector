@@ -28,7 +28,6 @@ import (
 	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/extension"
-	"go.opentelemetry.io/collector/internal/obsreportconfig"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/service/extensions"
@@ -62,9 +61,6 @@ type Settings struct {
 
 	// LoggingOptions provides a way to change behavior of zap logging.
 	LoggingOptions []zap.Option
-
-	// For testing purpose only.
-	useOtel *bool
 }
 
 // Service represents the implementation of a component.Host.
@@ -77,10 +73,6 @@ type Service struct {
 }
 
 func New(ctx context.Context, set Settings, cfg Config) (*Service, error) {
-	useOtel := obsreportconfig.UseOtelForInternalMetricsfeatureGate.IsEnabled()
-	if set.useOtel != nil {
-		useOtel = *set.useOtel
-	}
 	srv := &Service{
 		buildInfo: set.BuildInfo,
 		host: &serviceHost{
@@ -92,7 +84,7 @@ func New(ctx context.Context, set Settings, cfg Config) (*Service, error) {
 			buildInfo:         set.BuildInfo,
 			asyncErrorChannel: set.AsyncErrorChannel,
 		},
-		telemetryInitializer: newColTelemetry(useOtel),
+		telemetryInitializer: newColTelemetry(),
 	}
 	var err error
 	srv.telemetry, err = telemetry.New(ctx, telemetry.Settings{ZapOptions: set.LoggingOptions}, cfg.Telemetry)
@@ -214,7 +206,7 @@ func (srv *Service) initExtensionsAndPipeline(ctx context.Context, set Settings,
 
 	if cfg.Telemetry.Metrics.Level != configtelemetry.LevelNone && cfg.Telemetry.Metrics.Address != "" {
 		// The process telemetry initialization requires the ballast size, which is available after the extensions are initialized.
-		if err = proctelemetry.RegisterProcessMetrics(srv.telemetryInitializer.ocRegistry, srv.telemetryInitializer.mp, obsreportconfig.UseOtelForInternalMetricsfeatureGate.IsEnabled(), getBallastSize(srv.host)); err != nil {
+		if err = proctelemetry.RegisterProcessMetrics(srv.telemetryInitializer.mp, getBallastSize(srv.host)); err != nil {
 			return fmt.Errorf("failed to register process metrics: %w", err)
 		}
 	}

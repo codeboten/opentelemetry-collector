@@ -17,8 +17,6 @@ package obsreport // import "go.opentelemetry.io/collector/obsreport"
 import (
 	"context"
 
-	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric/instrument"
 	"go.opentelemetry.io/otel/trace"
@@ -28,7 +26,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/exporter"
-	"go.opentelemetry.io/collector/internal/obsreportconfig"
 	"go.opentelemetry.io/collector/internal/obsreportconfig/obsmetrics"
 )
 
@@ -42,11 +39,9 @@ const (
 type Exporter struct {
 	level          configtelemetry.Level
 	spanNamePrefix string
-	mutators       []tag.Mutator
 	tracer         trace.Tracer
 	logger         *zap.Logger
 
-	useOtelForMetrics        bool
 	otelAttrs                []attribute.KeyValue
 	sentSpans                instrument.Int64Counter
 	failedToSendSpans        instrument.Int64Counter
@@ -64,18 +59,16 @@ type ExporterSettings struct {
 
 // NewExporter creates a new Exporter.
 func NewExporter(cfg ExporterSettings) (*Exporter, error) {
-	return newExporter(cfg, obsreportconfig.UseOtelForInternalMetricsfeatureGate.IsEnabled())
+	return newExporter(cfg)
 }
 
-func newExporter(cfg ExporterSettings, useOtel bool) (*Exporter, error) {
+func newExporter(cfg ExporterSettings) (*Exporter, error) {
 	exp := &Exporter{
 		level:          cfg.ExporterCreateSettings.TelemetrySettings.MetricsLevel,
 		spanNamePrefix: obsmetrics.ExporterPrefix + cfg.ExporterID.String(),
-		mutators:       []tag.Mutator{tag.Upsert(obsmetrics.TagKeyExporter, cfg.ExporterID.String(), tag.WithTTL(tag.TTLNoPropagation))},
 		tracer:         cfg.ExporterCreateSettings.TracerProvider.Tracer(cfg.ExporterID.String()),
 		logger:         cfg.ExporterCreateSettings.Logger,
 
-		useOtelForMetrics: useOtel,
 		otelAttrs: []attribute.KeyValue{
 			attribute.String(obsmetrics.ExporterKey, cfg.ExporterID.String()),
 		},
@@ -89,9 +82,6 @@ func newExporter(cfg ExporterSettings, useOtel bool) (*Exporter, error) {
 }
 
 func (exp *Exporter) createOtelMetrics(cfg ExporterSettings) error {
-	if !exp.useOtelForMetrics {
-		return nil
-	}
 	meter := cfg.ExporterCreateSettings.MeterProvider.Meter(exporterScope)
 
 	var errors, err error
@@ -190,14 +180,7 @@ func (exp *Exporter) recordMetrics(ctx context.Context, dataType component.DataT
 	if exp.level == configtelemetry.LevelNone {
 		return
 	}
-	if exp.useOtelForMetrics {
-		exp.recordWithOtel(ctx, dataType, numSent, numFailed)
-	} else {
-		exp.recordWithOC(ctx, dataType, numSent, numFailed)
-	}
-}
 
-func (exp *Exporter) recordWithOtel(ctx context.Context, dataType component.DataType, sent int64, failed int64) {
 	var sentMeasure, failedMeasure instrument.Int64Counter
 	switch dataType {
 	case component.DataTypeTraces:
@@ -211,29 +194,8 @@ func (exp *Exporter) recordWithOtel(ctx context.Context, dataType component.Data
 		failedMeasure = exp.failedToSendLogRecords
 	}
 
-	sentMeasure.Add(ctx, sent, exp.otelAttrs...)
-	failedMeasure.Add(ctx, failed, exp.otelAttrs...)
-}
-
-func (exp *Exporter) recordWithOC(ctx context.Context, dataType component.DataType, sent int64, failed int64) {
-	var sentMeasure, failedMeasure *stats.Int64Measure
-	switch dataType {
-	case component.DataTypeTraces:
-		sentMeasure = obsmetrics.ExporterSentSpans
-		failedMeasure = obsmetrics.ExporterFailedToSendSpans
-	case component.DataTypeMetrics:
-		sentMeasure = obsmetrics.ExporterSentMetricPoints
-		failedMeasure = obsmetrics.ExporterFailedToSendMetricPoints
-	case component.DataTypeLogs:
-		sentMeasure = obsmetrics.ExporterSentLogRecords
-		failedMeasure = obsmetrics.ExporterFailedToSendLogRecords
-	}
-
-	_ = stats.RecordWithTags(
-		ctx,
-		exp.mutators,
-		sentMeasure.M(sent),
-		failedMeasure.M(failed))
+	sentMeasure.Add(ctx, numSent, exp.otelAttrs...)
+	failedMeasure.Add(ctx, numFailed, exp.otelAttrs...)
 }
 
 func endSpan(ctx context.Context, err error, numSent, numFailedToSend int64, sentItemsKey, failedToSendItemsKey string) {

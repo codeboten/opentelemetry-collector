@@ -18,8 +18,6 @@ import (
 	"context"
 	"strings"
 
-	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric/instrument"
 	"go.uber.org/multierr"
@@ -27,7 +25,6 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
-	"go.opentelemetry.io/collector/internal/obsreportconfig"
 	"go.opentelemetry.io/collector/internal/obsreportconfig/obsmetrics"
 	"go.opentelemetry.io/collector/processor"
 )
@@ -53,13 +50,11 @@ func BuildProcessorCustomMetricName(configType, metric string) string {
 
 // Processor is a helper to add observability to a component.Processor.
 type Processor struct {
-	level    configtelemetry.Level
-	mutators []tag.Mutator
+	level configtelemetry.Level
 
 	logger *zap.Logger
 
-	useOtelForMetrics bool
-	otelAttrs         []attribute.KeyValue
+	otelAttrs []attribute.KeyValue
 
 	acceptedSpansCounter        instrument.Int64Counter
 	refusedSpansCounter         instrument.Int64Counter
@@ -80,15 +75,13 @@ type ProcessorSettings struct {
 
 // NewProcessor creates a new Processor.
 func NewProcessor(cfg ProcessorSettings) (*Processor, error) {
-	return newProcessor(cfg, obsreportconfig.UseOtelForInternalMetricsfeatureGate.IsEnabled())
+	return newProcessor(cfg)
 }
 
-func newProcessor(cfg ProcessorSettings, useOtel bool) (*Processor, error) {
+func newProcessor(cfg ProcessorSettings) (*Processor, error) {
 	proc := &Processor{
-		level:             cfg.ProcessorCreateSettings.MetricsLevel,
-		mutators:          []tag.Mutator{tag.Upsert(obsmetrics.TagKeyProcessor, cfg.ProcessorID.String(), tag.WithTTL(tag.TTLNoPropagation))},
-		logger:            cfg.ProcessorCreateSettings.Logger,
-		useOtelForMetrics: useOtel,
+		level:  cfg.ProcessorCreateSettings.MetricsLevel,
+		logger: cfg.ProcessorCreateSettings.Logger,
 		otelAttrs: []attribute.KeyValue{
 			attribute.String(obsmetrics.ProcessorKey, cfg.ProcessorID.String()),
 		},
@@ -102,9 +95,6 @@ func newProcessor(cfg ProcessorSettings, useOtel bool) (*Processor, error) {
 }
 
 func (por *Processor) createOtelMetrics(cfg ProcessorSettings) error {
-	if !por.useOtelForMetrics {
-		return nil
-	}
 	meter := cfg.ProcessorCreateSettings.MeterProvider.Meter(processorScope)
 	var errors, err error
 
@@ -174,7 +164,11 @@ func (por *Processor) createOtelMetrics(cfg ProcessorSettings) error {
 	return errors
 }
 
-func (por *Processor) recordWithOtel(ctx context.Context, dataType component.DataType, accepted, refused, dropped int64) {
+func (por *Processor) recordData(ctx context.Context, dataType component.DataType, accepted, refused, dropped int64) {
+	if por.level == configtelemetry.LevelNone {
+		return
+	}
+
 	var acceptedCount, refusedCount, droppedCount instrument.Int64Counter
 	switch dataType {
 	case component.DataTypeTraces:
@@ -196,101 +190,47 @@ func (por *Processor) recordWithOtel(ctx context.Context, dataType component.Dat
 	droppedCount.Add(ctx, dropped, por.otelAttrs...)
 }
 
-func (por *Processor) recordWithOC(ctx context.Context, dataType component.DataType, accepted, refused, dropped int64) {
-	var acceptedMeasure, refusedMeasure, droppedMeasure *stats.Int64Measure
-
-	switch dataType {
-	case component.DataTypeTraces:
-		acceptedMeasure = obsmetrics.ProcessorAcceptedSpans
-		refusedMeasure = obsmetrics.ProcessorRefusedSpans
-		droppedMeasure = obsmetrics.ProcessorDroppedSpans
-	case component.DataTypeMetrics:
-		acceptedMeasure = obsmetrics.ProcessorAcceptedMetricPoints
-		refusedMeasure = obsmetrics.ProcessorRefusedMetricPoints
-		droppedMeasure = obsmetrics.ProcessorDroppedMetricPoints
-	case component.DataTypeLogs:
-		acceptedMeasure = obsmetrics.ProcessorAcceptedLogRecords
-		refusedMeasure = obsmetrics.ProcessorRefusedLogRecords
-		droppedMeasure = obsmetrics.ProcessorDroppedLogRecords
-	}
-
-	// ignore the error for now; should not happen
-	_ = stats.RecordWithTags(
-		ctx,
-		por.mutators,
-		acceptedMeasure.M(accepted),
-		refusedMeasure.M(refused),
-		droppedMeasure.M(dropped),
-	)
-}
-
-func (por *Processor) recordData(ctx context.Context, dataType component.DataType, accepted, refused, dropped int64) {
-	if por.useOtelForMetrics {
-		por.recordWithOtel(ctx, dataType, accepted, refused, dropped)
-	} else {
-		por.recordWithOC(ctx, dataType, accepted, refused, dropped)
-	}
-}
-
 // TracesAccepted reports that the trace data was accepted.
 func (por *Processor) TracesAccepted(ctx context.Context, numSpans int) {
-	if por.level != configtelemetry.LevelNone {
-		por.recordData(ctx, component.DataTypeTraces, int64(numSpans), int64(0), int64(0))
-	}
+	por.recordData(ctx, component.DataTypeTraces, int64(numSpans), int64(0), int64(0))
 }
 
 // TracesRefused reports that the trace data was refused.
 func (por *Processor) TracesRefused(ctx context.Context, numSpans int) {
-	if por.level != configtelemetry.LevelNone {
-		por.recordData(ctx, component.DataTypeTraces, int64(0), int64(numSpans), int64(0))
-	}
+	por.recordData(ctx, component.DataTypeTraces, int64(0), int64(numSpans), int64(0))
 }
 
 // TracesDropped reports that the trace data was dropped.
 func (por *Processor) TracesDropped(ctx context.Context, numSpans int) {
-	if por.level != configtelemetry.LevelNone {
-		por.recordData(ctx, component.DataTypeTraces, int64(0), int64(0), int64(numSpans))
-	}
+	por.recordData(ctx, component.DataTypeTraces, int64(0), int64(0), int64(numSpans))
 }
 
 // MetricsAccepted reports that the metrics were accepted.
 func (por *Processor) MetricsAccepted(ctx context.Context, numPoints int) {
-	if por.level != configtelemetry.LevelNone {
-		por.recordData(ctx, component.DataTypeMetrics, int64(numPoints), int64(0), int64(0))
-	}
+	por.recordData(ctx, component.DataTypeMetrics, int64(numPoints), int64(0), int64(0))
 }
 
 // MetricsRefused reports that the metrics were refused.
 func (por *Processor) MetricsRefused(ctx context.Context, numPoints int) {
-	if por.level != configtelemetry.LevelNone {
-		por.recordData(ctx, component.DataTypeMetrics, int64(0), int64(numPoints), int64(0))
-	}
+	por.recordData(ctx, component.DataTypeMetrics, int64(0), int64(numPoints), int64(0))
 }
 
 // MetricsDropped reports that the metrics were dropped.
 func (por *Processor) MetricsDropped(ctx context.Context, numPoints int) {
-	if por.level != configtelemetry.LevelNone {
-		por.recordData(ctx, component.DataTypeMetrics, int64(0), int64(0), int64(numPoints))
-	}
+	por.recordData(ctx, component.DataTypeMetrics, int64(0), int64(0), int64(numPoints))
 }
 
 // LogsAccepted reports that the logs were accepted.
 func (por *Processor) LogsAccepted(ctx context.Context, numRecords int) {
-	if por.level != configtelemetry.LevelNone {
-		por.recordData(ctx, component.DataTypeLogs, int64(numRecords), int64(0), int64(0))
-	}
+	por.recordData(ctx, component.DataTypeLogs, int64(numRecords), int64(0), int64(0))
 }
 
 // LogsRefused reports that the logs were refused.
 func (por *Processor) LogsRefused(ctx context.Context, numRecords int) {
-	if por.level != configtelemetry.LevelNone {
-		por.recordData(ctx, component.DataTypeLogs, int64(0), int64(numRecords), int64(0))
-	}
+	por.recordData(ctx, component.DataTypeLogs, int64(0), int64(numRecords), int64(0))
 }
 
 // LogsDropped reports that the logs were dropped.
 func (por *Processor) LogsDropped(ctx context.Context, numRecords int) {
-	if por.level != configtelemetry.LevelNone {
-		por.recordData(ctx, component.DataTypeLogs, int64(0), int64(0), int64(numRecords))
-	}
+	por.recordData(ctx, component.DataTypeLogs, int64(0), int64(0), int64(numRecords))
 }

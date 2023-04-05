@@ -71,8 +71,8 @@ var _ consumer.Traces = (*batchProcessor)(nil)
 var _ consumer.Metrics = (*batchProcessor)(nil)
 var _ consumer.Logs = (*batchProcessor)(nil)
 
-func newBatchProcessor(set processor.CreateSettings, cfg *Config, batch batch, useOtel bool) (*batchProcessor, error) {
-	bpt, err := newBatchProcessorTelemetry(set, useOtel)
+func newBatchProcessor(set processor.CreateSettings, cfg *Config, batch batch) (*batchProcessor, error) {
+	bpt, err := newBatchProcessorTelemetry(set)
 	if err != nil {
 		return nil, fmt.Errorf("error to create batch processor telemetry %w", err)
 	}
@@ -200,18 +200,18 @@ func (bp *batchProcessor) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 }
 
 // newBatchTracesProcessor creates a new batch processor that batches traces by size or with timeout
-func newBatchTracesProcessor(set processor.CreateSettings, next consumer.Traces, cfg *Config, useOtel bool) (*batchProcessor, error) {
-	return newBatchProcessor(set, cfg, newBatchTraces(next), useOtel)
+func newBatchTracesProcessor(set processor.CreateSettings, next consumer.Traces, cfg *Config) (*batchProcessor, error) {
+	return newBatchProcessor(set, cfg, newBatchTraces(next))
 }
 
 // newBatchMetricsProcessor creates a new batch processor that batches metrics by size or with timeout
-func newBatchMetricsProcessor(set processor.CreateSettings, next consumer.Metrics, cfg *Config, useOtel bool) (*batchProcessor, error) {
-	return newBatchProcessor(set, cfg, newBatchMetrics(next), useOtel)
+func newBatchMetricsProcessor(set processor.CreateSettings, next consumer.Metrics, cfg *Config) (*batchProcessor, error) {
+	return newBatchProcessor(set, cfg, newBatchMetrics(next))
 }
 
 // newBatchLogsProcessor creates a new batch processor that batches logs by size or with timeout
-func newBatchLogsProcessor(set processor.CreateSettings, next consumer.Logs, cfg *Config, useOtel bool) (*batchProcessor, error) {
-	return newBatchProcessor(set, cfg, newBatchLogs(next), useOtel)
+func newBatchLogsProcessor(set processor.CreateSettings, next consumer.Logs, cfg *Config) (*batchProcessor, error) {
+	return newBatchProcessor(set, cfg, newBatchLogs(next))
 }
 
 type batchTraces struct {

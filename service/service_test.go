@@ -214,23 +214,15 @@ func TestServiceTelemetryCleanupOnError(t *testing.T) {
 	assert.NoError(t, srv.Shutdown(context.Background()))
 }
 
-func TestServiceTelemetryWithOpenCensusMetrics(t *testing.T) {
+func TestServiceTelemetryMetrics(t *testing.T) {
 	for _, tc := range ownMetricsTestCases() {
 		t.Run(tc.name, func(t *testing.T) {
-			testCollectorStartHelper(t, false, tc)
+			testCollectorStartHelper(t, tc)
 		})
 	}
 }
 
-func TestServiceTelemetryWithOpenTelemetryMetrics(t *testing.T) {
-	for _, tc := range ownMetricsTestCases() {
-		t.Run(tc.name, func(t *testing.T) {
-			testCollectorStartHelper(t, true, tc)
-		})
-	}
-}
-
-func testCollectorStartHelper(t *testing.T, useOtel bool, tc ownMetricsTestCase) {
+func testCollectorStartHelper(t *testing.T, tc ownMetricsTestCase) {
 	var once sync.Once
 	loggingHookCalled := false
 	hook := func(entry zapcore.Entry) error {
@@ -249,7 +241,6 @@ func testCollectorStartHelper(t *testing.T, useOtel bool, tc ownMetricsTestCase)
 		map[component.ID]component.Config{component.NewID("zpages"): &zpagesextension.Config{TCPAddr: confignet.TCPAddr{Endpoint: zpagesAddr}}},
 		map[component.Type]extension.Factory{"zpages": zpagesextension.NewFactory()})
 	set.LoggingOptions = []zap.Option{zap.Hooks(hook)}
-	set.useOtel = &useOtel
 
 	cfg := newNopConfig()
 	cfg.Extensions = []component.ID{component.NewID("zpages")}
@@ -269,9 +260,7 @@ func testCollectorStartHelper(t *testing.T, useOtel bool, tc ownMetricsTestCase)
 		// Sleep for 1 second to ensure the http server is started.
 		time.Sleep(1 * time.Second)
 		assert.True(t, loggingHookCalled)
-		if !useOtel {
-			assertMetrics(t, metricsAddr, tc.expectedLabels)
-		}
+		assertMetrics(t, metricsAddr, tc.expectedLabels)
 		assertZPages(t, zpagesAddr)
 		require.NoError(t, srv.Shutdown(context.Background()))
 	}

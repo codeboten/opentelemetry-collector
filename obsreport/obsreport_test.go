@@ -50,26 +50,18 @@ type testParams struct {
 	err   error
 }
 
-func testTelemetry(t *testing.T, id component.ID, testFunc func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool)) {
-	t.Run("WithOC", func(t *testing.T) {
-		tt, err := obsreporttest.SetupTelemetry(id)
-		require.NoError(t, err)
-		t.Cleanup(func() { require.NoError(t, tt.Shutdown(context.Background())) })
-
-		testFunc(t, tt, false)
-	})
-
+func testTelemetry(t *testing.T, id component.ID, testFunc func(t *testing.T, tt obsreporttest.TestTelemetry)) {
 	t.Run("WithOTel", func(t *testing.T) {
 		tt, err := obsreporttest.SetupTelemetry(id)
 		require.NoError(t, err)
 		t.Cleanup(func() { require.NoError(t, tt.Shutdown(context.Background())) })
 
-		testFunc(t, tt, true)
+		testFunc(t, tt)
 	})
 }
 
 func TestReceiveTraceDataOp(t *testing.T) {
-	testTelemetry(t, receiverID, func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool) {
+	testTelemetry(t, receiverID, func(t *testing.T, tt obsreporttest.TestTelemetry) {
 		parentCtx, parentSpan := tt.TracerProvider.Tracer("test").Start(context.Background(), t.Name())
 		defer parentSpan.End()
 
@@ -82,7 +74,7 @@ func TestReceiveTraceDataOp(t *testing.T) {
 				ReceiverID:             receiverID,
 				Transport:              transport,
 				ReceiverCreateSettings: tt.ToReceiverCreateSettings(),
-			}, useOtel)
+			})
 			require.NoError(t, err)
 			ctx := rec.StartTracesOp(parentCtx)
 			assert.NotNil(t, ctx)
@@ -116,7 +108,7 @@ func TestReceiveTraceDataOp(t *testing.T) {
 }
 
 func TestReceiveLogsOp(t *testing.T) {
-	testTelemetry(t, receiverID, func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool) {
+	testTelemetry(t, receiverID, func(t *testing.T, tt obsreporttest.TestTelemetry) {
 		parentCtx, parentSpan := tt.TracerProvider.Tracer("test").Start(context.Background(), t.Name())
 		defer parentSpan.End()
 
@@ -129,7 +121,7 @@ func TestReceiveLogsOp(t *testing.T) {
 				ReceiverID:             receiverID,
 				Transport:              transport,
 				ReceiverCreateSettings: tt.ToReceiverCreateSettings(),
-			}, useOtel)
+			})
 			require.NoError(t, err)
 
 			ctx := rec.StartLogsOp(parentCtx)
@@ -164,7 +156,7 @@ func TestReceiveLogsOp(t *testing.T) {
 }
 
 func TestReceiveMetricsOp(t *testing.T) {
-	testTelemetry(t, receiverID, func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool) {
+	testTelemetry(t, receiverID, func(t *testing.T, tt obsreporttest.TestTelemetry) {
 		parentCtx, parentSpan := tt.TracerProvider.Tracer("test").Start(context.Background(), t.Name())
 		defer parentSpan.End()
 
@@ -177,7 +169,7 @@ func TestReceiveMetricsOp(t *testing.T) {
 				ReceiverID:             receiverID,
 				Transport:              transport,
 				ReceiverCreateSettings: tt.ToReceiverCreateSettings(),
-			}, useOtel)
+			})
 			require.NoError(t, err)
 
 			ctx := rec.StartMetricsOp(parentCtx)
@@ -213,7 +205,7 @@ func TestReceiveMetricsOp(t *testing.T) {
 }
 
 func TestScrapeMetricsDataOp(t *testing.T) {
-	testTelemetry(t, receiverID, func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool) {
+	testTelemetry(t, receiverID, func(t *testing.T, tt obsreporttest.TestTelemetry) {
 		parentCtx, parentSpan := tt.TracerProvider.Tracer("test").Start(context.Background(), t.Name())
 		defer parentSpan.End()
 
@@ -227,7 +219,7 @@ func TestScrapeMetricsDataOp(t *testing.T) {
 				ReceiverID:             receiverID,
 				Scraper:                scraperID,
 				ReceiverCreateSettings: tt.ToReceiverCreateSettings(),
-			}, useOtel)
+			})
 			require.NoError(t, err)
 			ctx := scrp.StartMetricsOp(parentCtx)
 			assert.NotNil(t, ctx)
@@ -270,14 +262,14 @@ func TestScrapeMetricsDataOp(t *testing.T) {
 }
 
 func TestExportTraceDataOp(t *testing.T) {
-	testTelemetry(t, exporterID, func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool) {
+	testTelemetry(t, exporterID, func(t *testing.T, tt obsreporttest.TestTelemetry) {
 		parentCtx, parentSpan := tt.TracerProvider.Tracer("test").Start(context.Background(), t.Name())
 		defer parentSpan.End()
 
 		obsrep, err := newExporter(ExporterSettings{
 			ExporterID:             exporterID,
 			ExporterCreateSettings: tt.ToExporterCreateSettings(),
-		}, useOtel)
+		})
 		require.NoError(t, err)
 
 		params := []testParams{
@@ -318,14 +310,14 @@ func TestExportTraceDataOp(t *testing.T) {
 }
 
 func TestExportMetricsOp(t *testing.T) {
-	testTelemetry(t, exporterID, func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool) {
+	testTelemetry(t, exporterID, func(t *testing.T, tt obsreporttest.TestTelemetry) {
 		parentCtx, parentSpan := tt.TracerProvider.Tracer("test").Start(context.Background(), t.Name())
 		defer parentSpan.End()
 
 		obsrep, err := newExporter(ExporterSettings{
 			ExporterID:             exporterID,
 			ExporterCreateSettings: tt.ToExporterCreateSettings(),
-		}, useOtel)
+		})
 		require.NoError(t, err)
 
 		params := []testParams{
@@ -367,14 +359,14 @@ func TestExportMetricsOp(t *testing.T) {
 }
 
 func TestExportLogsOp(t *testing.T) {
-	testTelemetry(t, exporterID, func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool) {
+	testTelemetry(t, exporterID, func(t *testing.T, tt obsreporttest.TestTelemetry) {
 		parentCtx, parentSpan := tt.TracerProvider.Tracer("test").Start(context.Background(), t.Name())
 		defer parentSpan.End()
 
 		obsrep, err := newExporter(ExporterSettings{
 			ExporterID:             exporterID,
 			ExporterCreateSettings: tt.ToExporterCreateSettings(),
-		}, useOtel)
+		})
 		require.NoError(t, err)
 
 		params := []testParams{
@@ -470,14 +462,14 @@ func TestReceiveWithLongLivedCtx(t *testing.T) {
 }
 
 func TestProcessorTraceData(t *testing.T) {
-	testTelemetry(t, processorID, func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool) {
+	testTelemetry(t, processorID, func(t *testing.T, tt obsreporttest.TestTelemetry) {
 		const acceptedSpans = 27
 		const refusedSpans = 19
 		const droppedSpans = 13
 		obsrep, err := newProcessor(ProcessorSettings{
 			ProcessorID:             processorID,
 			ProcessorCreateSettings: tt.ToProcessorCreateSettings(),
-		}, useOtel)
+		})
 		require.NoError(t, err)
 		obsrep.TracesAccepted(context.Background(), acceptedSpans)
 		obsrep.TracesRefused(context.Background(), refusedSpans)
@@ -488,7 +480,7 @@ func TestProcessorTraceData(t *testing.T) {
 }
 
 func TestProcessorMetricsData(t *testing.T) {
-	testTelemetry(t, processorID, func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool) {
+	testTelemetry(t, processorID, func(t *testing.T, tt obsreporttest.TestTelemetry) {
 		const acceptedPoints = 29
 		const refusedPoints = 11
 		const droppedPoints = 17
@@ -496,7 +488,7 @@ func TestProcessorMetricsData(t *testing.T) {
 		obsrep, err := newProcessor(ProcessorSettings{
 			ProcessorID:             processorID,
 			ProcessorCreateSettings: tt.ToProcessorCreateSettings(),
-		}, useOtel)
+		})
 		require.NoError(t, err)
 		obsrep.MetricsAccepted(context.Background(), acceptedPoints)
 		obsrep.MetricsRefused(context.Background(), refusedPoints)
@@ -529,7 +521,7 @@ func TestBuildProcessorCustomMetricName(t *testing.T) {
 }
 
 func TestProcessorLogRecords(t *testing.T) {
-	testTelemetry(t, processorID, func(t *testing.T, tt obsreporttest.TestTelemetry, useOtel bool) {
+	testTelemetry(t, processorID, func(t *testing.T, tt obsreporttest.TestTelemetry) {
 		const acceptedRecords = 29
 		const refusedRecords = 11
 		const droppedRecords = 17
@@ -537,7 +529,7 @@ func TestProcessorLogRecords(t *testing.T) {
 		obsrep, err := newProcessor(ProcessorSettings{
 			ProcessorID:             processorID,
 			ProcessorCreateSettings: tt.ToProcessorCreateSettings(),
-		}, useOtel)
+		})
 		require.NoError(t, err)
 		obsrep.LogsAccepted(context.Background(), acceptedRecords)
 		obsrep.LogsRefused(context.Background(), refusedRecords)
