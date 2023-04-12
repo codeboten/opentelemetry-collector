@@ -13,7 +13,7 @@ require (
 	go.opentelemetry.io/collector/receiver v0.75.0
 	go.opentelemetry.io/collector/semconv v0.75.0
 	go.uber.org/zap v1.24.0
-	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f
+	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
 	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0
 )
@@ -30,7 +30,7 @@ require (
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.16.4 // indirect
