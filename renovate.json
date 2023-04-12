@@ -8,7 +8,16 @@
   ],
   "packageRules": [
     {
-      "matchManagers": ["dockerfile", "docker-compose", "github-actions"]
+      "matchManagers": ["dockerfile"],
+      "groupName": "dockerfile deps"
+    },
+    {
+      "matchManagers": ["docker-compose"],
+      "groupName": "docker-compose deps"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions deps"
     }
   ]
 }
