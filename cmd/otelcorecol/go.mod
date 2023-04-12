@@ -12,7 +12,7 @@ require (
 	go.opentelemetry.io/collector/exporter v0.74.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.74.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.74.0
-	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.74.0
+	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.75.0
 	go.opentelemetry.io/collector/extension/ballastextension v0.74.0
 	go.opentelemetry.io/collector/extension/zpagesextension v0.74.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.74.0
