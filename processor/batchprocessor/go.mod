@@ -9,7 +9,7 @@ require (
 	github.com/prometheus/common v0.42.0
 	github.com/stretchr/testify v1.8.2
 	go.opencensus.io v0.24.0
-	go.opentelemetry.io/collector v0.74.0
+	go.opentelemetry.io/collector v0.75.0
 	go.opentelemetry.io/collector/component v0.74.0
 	go.opentelemetry.io/collector/confmap v0.74.0
 	go.opentelemetry.io/collector/consumer v0.74.0
