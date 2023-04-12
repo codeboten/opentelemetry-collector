@@ -19,6 +19,7 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 )
 
@@ -104,6 +105,16 @@ type LogsSamplingConfig struct {
 	Thereafter int `mapstructure:"thereafter"`
 }
 
+type Reader struct {
+	Type string            `mapstructure:"type"`
+	Args map[string]string `mapstructure:"args"`
+}
+
+type Exporter struct {
+	Name component.ID
+	Args map[string]string `mapstructure:"args"`
+}
+
 // MetricsConfig exposes the common Telemetry configuration for one component.
 // Experimental: *NOTE* this structure is subject to change or removal in the future.
 type MetricsConfig struct {
@@ -115,7 +126,12 @@ type MetricsConfig struct {
 	Level configtelemetry.Level `mapstructure:"level"`
 
 	// Address is the [address]:port that metrics exposition should be bound to.
+	// Deprecated: Use `metric_readers` instead.
 	Address string `mapstructure:"address"`
+
+	Exporters []Exporter `mapstructure:"exporters"`
+
+	Readers []Reader `mapstructure:"metric_readers"`
 }
 
 // TracesConfig exposes the common Telemetry configuration for collector's internal spans.

@@ -15,60 +15,103 @@
 package service // import "go.opentelemetry.io/collector/service"
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
-	"unicode"
 
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	ocmetric "go.opencensus.io/metric"
 	"go.opencensus.io/metric/metricproducer"
-	"go.opentelemetry.io/contrib/propagators/b3"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/bridge/opencensus"
 	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/aggregation"
-	"go.opentelemetry.io/otel/sdk/resource"
+
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
-	"go.opentelemetry.io/collector/obsreport"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	"go.opentelemetry.io/collector/service/internal/proctelemetry"
 	"go.opentelemetry.io/collector/service/telemetry"
 )
 
 const (
 	zapKeyTelemetryAddress = "address"
 	zapKeyTelemetryLevel   = "level"
-
-	// supported trace propagators
-	traceContextPropagator = "tracecontext"
-	b3Propagator           = "b3"
-)
-
-var (
-	errUnsupportedPropagator = errors.New("unsupported trace propagator")
 )
 
 type telemetryInitializer struct {
 	ocRegistry *ocmetric.Registry
 	mp         metric.MeterProvider
-	server     *http.Server
+	server     []*http.Server
 }
 
 func newColTelemetry() *telemetryInitializer {
 	return &telemetryInitializer{
 		mp: metric.NewNoopMeterProvider(),
 	}
+}
+
+func (tel *telemetryInitializer) initPeriodicReader(reader telemetry.Reader) (sdkmetric.Reader, error) {
+	exporterType, ok := reader.Args["exporter"]
+	if !ok {
+		return nil, errors.New("no exporter configured")
+	}
+	exp, err := proctelemetry.InitExporter(exporterType)
+	if err != nil {
+		return nil, err
+	}
+	return sdkmetric.NewPeriodicReader(exp), nil
+
+}
+
+func (tel *telemetryInitializer) toReader(reader telemetry.Reader, logger *zap.Logger, cfg telemetry.Config, asyncErrorChannel chan error) (sdkmetric.Reader, error) {
+	switch reader.Type {
+	case "prometheus":
+		return tel.initPrometheusReader(logger, reader.Args["endpoint"], cfg.Metrics.Level.String(), asyncErrorChannel)
+	case "periodic":
+		return tel.initPeriodicReader(reader)
+	}
+	return nil, fmt.Errorf("unsupported metric reader type: %s", reader.Type)
+}
+
+func (tel *telemetryInitializer) initPrometheusReader(logger *zap.Logger, address string, level string, asyncErrorChannel chan error) (sdkmetric.Reader, error) {
+	promRegistry := prometheus.NewRegistry()
+	wrappedRegisterer := prometheus.WrapRegistererWithPrefix("otelcol_", promRegistry)
+	logger.Info(
+		"Serving Prometheus metrics",
+		zap.String(zapKeyTelemetryAddress, address),
+		zap.String(zapKeyTelemetryLevel, level),
+	)
+
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.HandlerFor(promRegistry, promhttp.HandlerOpts{}))
+
+	promServer := &http.Server{
+		Addr:    address,
+		Handler: mux,
+	}
+	tel.server = append(tel.server, promServer)
+
+	go func() {
+		if serveErr := promServer.ListenAndServe(); serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
+			asyncErrorChannel <- serveErr
+		}
+	}()
+
+	// We can remove `otelprom.WithoutUnits()` when the otel-go start exposing prometheus metrics using the OpenMetrics format
+	// which includes metric units that prometheusreceiver uses to trim unit's suffixes from metric names.
+	// https://github.com/open-telemetry/opentelemetry-go/issues/3468
+	return otelprom.New(
+		otelprom.WithRegisterer(wrappedRegisterer),
+		otelprom.WithoutUnits(),
+		// Disabled for the moment until this becomes stable, and we are ready to break backwards compatibility.
+		otelprom.WithoutScopeInfo())
 }
 
 func (tel *telemetryInitializer) init(buildInfo component.BuildInfo, logger *zap.Logger, cfg telemetry.Config, asyncErrorChannel chan error) error {
@@ -86,36 +129,40 @@ func (tel *telemetryInitializer) init(buildInfo component.BuildInfo, logger *zap
 	// Construct telemetry attributes from build info and config's resource attributes.
 	telAttrs := buildTelAttrs(buildInfo, cfg)
 
-	if tp, err := textMapPropagatorFromConfig(cfg.Traces.Propagators); err == nil {
+	if tp, err := proctelemetry.TextMapPropagatorFromConfig(cfg.Traces.Propagators); err == nil {
 		otel.SetTextMapPropagator(tp)
 	} else {
 		return err
 	}
 
-	promRegistry := prometheus.NewRegistry()
-	if err := tel.initOpenTelemetry(telAttrs, promRegistry); err != nil {
+	// Initialize the ocRegistry, still used by the process metrics.
+	tel.ocRegistry = ocmetric.NewRegistry()
+	metricproducer.GlobalManager().AddProducer(tel.ocRegistry)
+
+	if len(cfg.Metrics.Address) > 0 {
+		// TODO: improve message
+		logger.Warn("service.telemetry.metrics.address is being deprecated in favour of service.telemetry.metrics.metric_readers")
+		// TODO: account for multiple readers trying to use the same port
+		cfg.Metrics.Readers = append(cfg.Metrics.Readers, telemetry.Reader{
+			Type: "prometheus",
+			Args: map[string]string{
+				"endpoint": cfg.Metrics.Address,
+			},
+		})
+	}
+	readers := []sdkmetric.Option{}
+	for _, reader := range cfg.Metrics.Readers {
+		r, err := tel.toReader(reader, logger, cfg, asyncErrorChannel)
+		if err != nil {
+			return err
+		}
+		r.RegisterProducer(opencensus.NewMetricProducer())
+		readers = append(readers, sdkmetric.WithReader(r))
+	}
+	var err error
+	if tel.mp, err = proctelemetry.InitOpenTelemetry(telAttrs, readers); err != nil {
 		return err
 	}
-
-	logger.Info(
-		"Serving Prometheus metrics",
-		zap.String(zapKeyTelemetryAddress, cfg.Metrics.Address),
-		zap.String(zapKeyTelemetryLevel, cfg.Metrics.Level.String()),
-	)
-
-	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.HandlerFor(promRegistry, promhttp.HandlerOpts{}))
-
-	tel.server = &http.Server{
-		Addr:    cfg.Metrics.Address,
-		Handler: mux,
-	}
-
-	go func() {
-		if serveErr := tel.server.ListenAndServe(); serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
-			asyncErrorChannel <- serveErr
-		}
-	}()
 
 	return nil
 }
@@ -151,93 +198,14 @@ func buildTelAttrs(buildInfo component.BuildInfo, cfg telemetry.Config) map[stri
 	return telAttrs
 }
 
-func (tel *telemetryInitializer) initOpenTelemetry(attrs map[string]string, promRegistry prometheus.Registerer) error {
-	// Initialize the ocRegistry, still used by the process metrics.
-	tel.ocRegistry = ocmetric.NewRegistry()
-	metricproducer.GlobalManager().AddProducer(tel.ocRegistry)
-
-	var resAttrs []attribute.KeyValue
-	for k, v := range attrs {
-		resAttrs = append(resAttrs, attribute.String(k, v))
-	}
-
-	res, err := resource.New(context.Background(), resource.WithAttributes(resAttrs...))
-	if err != nil {
-		return fmt.Errorf("error creating otel resources: %w", err)
-	}
-
-	wrappedRegisterer := prometheus.WrapRegistererWithPrefix("otelcol_", promRegistry)
-	// We can remove `otelprom.WithoutUnits()` when the otel-go start exposing prometheus metrics using the OpenMetrics format
-	// which includes metric units that prometheusreceiver uses to trim unit's suffixes from metric names.
-	// https://github.com/open-telemetry/opentelemetry-go/issues/3468
-	exporter, err := otelprom.New(
-		otelprom.WithRegisterer(wrappedRegisterer),
-		otelprom.WithoutUnits(),
-		// Disabled for the moment until this becomes stable, and we are ready to break backwards compatibility.
-		otelprom.WithoutScopeInfo())
-	if err != nil {
-		return fmt.Errorf("error creating otel prometheus exporter: %w", err)
-	}
-	exporter.RegisterProducer(opencensus.NewMetricProducer())
-	tel.mp = sdkmetric.NewMeterProvider(
-		sdkmetric.WithResource(res),
-		sdkmetric.WithReader(exporter),
-		sdkmetric.WithView(batchViews()...),
-	)
-
-	return nil
-}
-
 func (tel *telemetryInitializer) shutdown() error {
 	metricproducer.GlobalManager().DeleteProducer(tel.ocRegistry)
-
-	if tel.server != nil {
-		return tel.server.Close()
-	}
-
-	return nil
-}
-
-func sanitizePrometheusKey(str string) string {
-	runeFilterMap := func(r rune) rune {
-		if unicode.IsDigit(r) || unicode.IsLetter(r) || r == '_' {
-			return r
-		}
-		return '_'
-	}
-	return strings.Map(runeFilterMap, str)
-}
-
-func textMapPropagatorFromConfig(props []string) (propagation.TextMapPropagator, error) {
-	var textMapPropagators []propagation.TextMapPropagator
-	for _, prop := range props {
-		switch prop {
-		case traceContextPropagator:
-			textMapPropagators = append(textMapPropagators, propagation.TraceContext{})
-		case b3Propagator:
-			textMapPropagators = append(textMapPropagators, b3.New())
-		default:
-			return nil, errUnsupportedPropagator
+	var errs error
+	for _, server := range tel.server {
+		if server != nil {
+			errs = multierr.Append(errs, server.Close())
 		}
 	}
-	return propagation.NewCompositeTextMapPropagator(textMapPropagators...), nil
-}
 
-func batchViews() []sdkmetric.View {
-	return []sdkmetric.View{
-		sdkmetric.NewView(
-			sdkmetric.Instrument{Name: obsreport.BuildProcessorCustomMetricName("batch", "batch_send_size")},
-			sdkmetric.Stream{Aggregation: aggregation.ExplicitBucketHistogram{
-				Boundaries: []float64{10, 25, 50, 75, 100, 250, 500, 750, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 20000, 30000, 50000, 100000},
-			}},
-		),
-		sdkmetric.NewView(
-			sdkmetric.Instrument{Name: obsreport.BuildProcessorCustomMetricName("batch", "batch_send_size_bytes")},
-			sdkmetric.Stream{Aggregation: aggregation.ExplicitBucketHistogram{
-				Boundaries: []float64{10, 25, 50, 75, 100, 250, 500, 750, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 20000, 30000, 50000,
-					100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000, 900_000,
-					1000_000, 2000_000, 3000_000, 4000_000, 5000_000, 6000_000, 7000_000, 8000_000, 9000_000},
-			}},
-		),
-	}
+	return errs
 }
