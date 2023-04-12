@@ -6,26 +6,9 @@
   "extends": [
     "config:base"
   ],
-  "forkProcessing": "enabled",
-  "groupName": "all dependencies",
-  "groupSlug": "all",
-  "lockFileMaintenance": {
-    "enabled": false
-  },
   "packageRules": [
     {
-      "groupName": "all dependencies",
-      "groupSlug": "all",
-      "matchPackagePatterns": [
-        "*"
-      ]
+      "matchManagers": ["dockerfile", "docker-compose", "github-actions"]
     }
-  ],
-  "separateMajorMinor": true,
-  "postUpgradeTasks": {
-    "commands": [
-      "make gotidy"
-    ],
-    "fileFilters": ["**/**"]
-  }
+  ]
 }
