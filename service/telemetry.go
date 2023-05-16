@@ -27,14 +27,11 @@ import (
 	ocmetric "go.opencensus.io/metric"
 	"go.opencensus.io/metric/metricproducer"
 	"go.opencensus.io/stats/view"
-	"go.opentelemetry.io/contrib/propagators/b3"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/bridge/opencensus"
 	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/noop"
-	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/instrumentation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/aggregation"
@@ -47,16 +44,13 @@ import (
 	"go.opentelemetry.io/collector/internal/obsreportconfig"
 	"go.opentelemetry.io/collector/obsreport"
 	semconv "go.opentelemetry.io/collector/semconv/v1.18.0"
+	"go.opentelemetry.io/collector/service/internal/proctelemetry"
 	"go.opentelemetry.io/collector/service/telemetry"
 )
 
 const (
 	zapKeyTelemetryAddress = "address"
 	zapKeyTelemetryLevel   = "level"
-
-	// supported trace propagators
-	traceContextPropagator = "tracecontext"
-	b3Propagator           = "b3"
 
 	// gRPC Instrumentation Name
 	grpcInstrumentation = "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -66,8 +60,6 @@ const (
 )
 
 var (
-	errUnsupportedPropagator = errors.New("unsupported trace propagator")
-
 	// grpcUnacceptableKeyValues is a list of high cardinality grpc attributes that should be filtered out.
 	grpcUnacceptableKeyValues = []attribute.KeyValue{
 		attribute.String(semconv.AttributeNetSockPeerAddr, ""),
@@ -114,9 +106,7 @@ func (tel *telemetryInitializer) init(res *resource.Resource, settings component
 
 	settings.Logger.Info("Setting up own telemetry...")
 
-	if tp, err := textMapPropagatorFromConfig(cfg.Traces.Propagators); err == nil {
-		otel.SetTextMapPropagator(tp)
-	} else {
+	if err := proctelemetry.SetTextMapPropagatorFromConfig(cfg.Traces.Propagators); err != nil {
 		return err
 	}
 
@@ -258,21 +248,6 @@ func sanitizePrometheusKey(str string) string {
 		return '_'
 	}
 	return strings.Map(runeFilterMap, str)
-}
-
-func textMapPropagatorFromConfig(props []string) (propagation.TextMapPropagator, error) {
-	var textMapPropagators []propagation.TextMapPropagator
-	for _, prop := range props {
-		switch prop {
-		case traceContextPropagator:
-			textMapPropagators = append(textMapPropagators, propagation.TraceContext{})
-		case b3Propagator:
-			textMapPropagators = append(textMapPropagators, b3.New())
-		default:
-			return nil, errUnsupportedPropagator
-		}
-	}
-	return propagation.NewCompositeTextMapPropagator(textMapPropagators...), nil
 }
 
 func batchViews() []sdkmetric.View {

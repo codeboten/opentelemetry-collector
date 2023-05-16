@@ -16,6 +16,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -114,6 +115,8 @@ func TestTelemetryInit(t *testing.T) {
 		disableHighCard bool
 		expectedMetrics map[string]metricValue
 		extendedConfig  bool
+		tracesConfig    telemetry.TracesConfig
+		err             error
 	}{
 		{
 			name:    "UseOpenCensusForInternalMetrics",
@@ -197,6 +200,13 @@ func TestTelemetryInit(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "InvalidPropagator",
+			tracesConfig: telemetry.TracesConfig{
+				Propagators: []string{"thing"},
+			},
+			err: errors.New("unsupported trace propagator"),
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			tel := newColTelemetry(tc.useOtel, tc.disableHighCard, tc.extendedConfig)
@@ -209,6 +219,7 @@ func TestTelemetryInit(t *testing.T) {
 					Level:   configtelemetry.LevelDetailed,
 					Address: testutil.GetAvailableLocalAddress(t),
 				},
+				Traces: tc.tracesConfig,
 			}
 			otelRes := buildResource(buildInfo, cfg)
 			res := pdataFromSdk(otelRes)
@@ -217,6 +228,10 @@ func TestTelemetryInit(t *testing.T) {
 				Resource: res,
 			}
 			err := tel.init(otelRes, settings, cfg, make(chan error))
+			if tc.err != nil {
+				require.EqualError(t, err, tc.err.Error())
+				return
+			}
 			require.NoError(t, err)
 			defer func() {
 				require.NoError(t, tel.shutdown())
