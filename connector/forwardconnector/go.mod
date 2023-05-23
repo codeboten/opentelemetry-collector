@@ -3,7 +3,7 @@ module go.opentelemetry.io/collector/connector/forwardconnector
 go 1.19
 
 require (
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	go.opentelemetry.io/collector v0.77.0
 	go.opentelemetry.io/collector/component v0.77.0
 	go.opentelemetry.io/collector/consumer v0.77.0
