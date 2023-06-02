@@ -8,6 +8,7 @@ require (
 	github.com/golang/snappy v0.0.4
 	github.com/google/uuid v1.3.0
 	github.com/klauspost/compress v1.16.5
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mostynb/go-grpc-compression v1.1.18
 	github.com/prometheus/client_golang v1.15.1
 	github.com/prometheus/client_model v0.4.0
@@ -67,7 +68,6 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
