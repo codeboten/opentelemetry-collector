@@ -5,16 +5,22 @@ package proctelemetry // import "go.opentelemetry.io/collector/service/internal/
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/bridge/opencensus"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/sdk/instrumentation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/aggregation"
@@ -34,10 +40,17 @@ const (
 	HTTPInstrumentation = "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	// supported metric readers
-	pullMetricReader = "pull"
+	pullMetricReader     = "pull"
+	periodicMetricReader = "periodic"
 
 	// supported exporters
 	prometheueExporter = "prometheus"
+	otlpExporter       = "otlp"
+	consoleExporter    = "console"
+
+	// supported protocols
+	protocolProtobufHTTP = "http/protobuf"
+	protocolProtobufGRPC = "grpc/protobuf"
 )
 
 var (
@@ -63,7 +76,18 @@ func InitMetricReader(ctx context.Context, name string, reader any, asyncErrorCh
 		if !ok {
 			return nil, nil, fmt.Errorf("invalid metric reader configuration: %v", reader)
 		}
-		return initExporter(ctx, r.Exporter, asyncErrorChannel)
+		return initPrometheusReader(ctx, r.Exporter, asyncErrorChannel)
+	case periodicMetricReader:
+		r, ok := reader.(telemetry.PeriodicMetricReader)
+		if !ok {
+			return nil, nil, fmt.Errorf("invalid metric reader configuration: %v", reader)
+		}
+
+		exporter, err := initExporter(ctx, r.Exporter, asyncErrorChannel)
+		if err != nil {
+			return nil, nil, err
+		}
+		return sdkmetric.NewPeriodicReader(exporter), nil, nil
 	default:
 		return nil, nil, fmt.Errorf("unsupported metric reader type: %s", readerType)
 	}
@@ -164,7 +188,45 @@ func initPrometheusExporter(prometheusConfig telemetry.Prometheus, asyncErrorCha
 	return exporter, InitPrometheusServer(promRegistry, fmt.Sprintf("%s:%d", *prometheusConfig.Host, *prometheusConfig.Port), asyncErrorChannel), nil
 }
 
-func initExporter(_ context.Context, exporters telemetry.MetricExporter, asyncErrorChannel chan error) (sdkmetric.Reader, *http.Server, error) {
+func initOTLPgRPCExporter(ctx context.Context, otlpConfig telemetry.Otlp) (sdkmetric.Exporter, error) {
+	opts := []otlpmetricgrpc.Option{}
+
+	if len(otlpConfig.Endpoint) > 0 {
+		opts = append(opts, otlpmetricgrpc.WithEndpoint(otlpConfig.Endpoint))
+	}
+	if otlpConfig.Compression != nil {
+		opts = append(opts, otlpmetricgrpc.WithCompressor(*otlpConfig.Compression))
+	}
+	if otlpConfig.Timeout != nil {
+		opts = append(opts, otlpmetricgrpc.WithTimeout(time.Millisecond*time.Duration(*otlpConfig.Timeout)))
+	}
+	if len(otlpConfig.Headers) > 0 {
+		opts = append(opts, otlpmetricgrpc.WithHeaders(toStringMap(otlpConfig.Headers)))
+	}
+
+	return otlpmetricgrpc.New(ctx, opts...)
+}
+
+func initOTLPHTTPExporter(ctx context.Context, otlpConfig telemetry.Otlp) (sdkmetric.Exporter, error) {
+	opts := []otlpmetrichttp.Option{}
+
+	if len(otlpConfig.Endpoint) > 0 {
+		opts = append(opts, otlpmetrichttp.WithEndpoint(otlpConfig.Endpoint))
+	}
+	if otlpConfig.Compression != nil {
+		opts = append(opts, otlpmetrichttp.WithCompressor(*otlpConfig.Compression))
+	}
+	if otlpConfig.Timeout != nil {
+		opts = append(opts, otlpmetrichttp.WithTimeout(time.Millisecond*time.Duration(*otlpConfig.Timeout)))
+	}
+	if len(otlpConfig.Headers) > 0 {
+		opts = append(opts, otlpmetrichttp.WithHeaders(toStringMap(otlpConfig.Headers)))
+	}
+
+	return otlpmetrichttp.New(ctx, opts...)
+}
+
+func initPrometheusReader(ctx context.Context, exporters telemetry.MetricExporter, asyncErrorChannel chan error) (sdkmetric.Reader, *http.Server, error) {
 	for exporterType, exporter := range exporters {
 		switch exporterType {
 		case prometheueExporter:
@@ -178,4 +240,37 @@ func initExporter(_ context.Context, exporters telemetry.MetricExporter, asyncEr
 		}
 	}
 	return nil, nil, fmt.Errorf("no valid exporter: %v", exporters)
+}
+
+func initExporter(ctx context.Context, exporters telemetry.MetricExporter, asyncErrorChannel chan error) (sdkmetric.Exporter, error) {
+	for exporterType, exporter := range exporters {
+		switch exporterType {
+		case consoleExporter:
+			enc := json.NewEncoder(os.Stdout)
+			enc.SetIndent("", "  ")
+			return stdoutmetric.New(
+				stdoutmetric.WithEncoder(enc),
+			)
+		case otlpExporter:
+			e, ok := exporter.(telemetry.Otlp)
+			if !ok {
+				return nil, fmt.Errorf("otlp exporter invalid: %v", exporter)
+			}
+			if e.Protocol == protocolProtobufHTTP {
+				return initOTLPHTTPExporter(ctx, e)
+			}
+			return initOTLPgRPCExporter(ctx, e)
+		default:
+			return nil, fmt.Errorf("unsupported metric exporter type: %s", exporterType)
+		}
+	}
+	return nil, fmt.Errorf("no valid exporter: %v", exporters)
+}
+
+func toStringMap(in map[string]interface{}) map[string]string {
+	out := map[string]string{}
+	for k, v := range in {
+		out[k] = fmt.Sprint(v)
+	}
+	return out
 }

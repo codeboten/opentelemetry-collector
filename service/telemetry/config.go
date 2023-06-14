@@ -163,6 +163,31 @@ func (mrs *MeterProviderJsonMetricReaders) Unmarshal(conf *confmap.Conf) error {
 					return fmt.Errorf("unsupported metric exporter type: %s", key)
 				}
 			}
+		case "periodic":
+			var r PeriodicMetricReader
+			if err := mapstructure.Decode(reader, &r); err != nil {
+				return fmt.Errorf("invalid periodic metric reader configuration: %w", err)
+			}
+			(*mrs)[key] = r
+
+			for key, exporter := range r.Exporter {
+				switch key {
+				case "otlp":
+					var exp Otlp
+					if err := mapstructure.Decode(exporter, &exp); err != nil {
+						return fmt.Errorf("invalid exporter configuration: %w", err)
+					}
+					r.Exporter[key] = exp
+				case "console":
+					var exp Console
+					if err := mapstructure.Decode(exporter, &exp); err != nil {
+						return fmt.Errorf("invalid exporter configuration: %w", err)
+					}
+					r.Exporter[key] = exp
+				default:
+					return fmt.Errorf("unsupported metric exporter type: %s", key)
+				}
+			}
 		default:
 			return fmt.Errorf("unsupported metric reader type: %s", readerType)
 		}
