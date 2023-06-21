@@ -23,6 +23,9 @@ coverage.out
 coverage.txt
 coverage.html
 
+# Benchmarks
+benchmarks.txt
+
 # Wix
 *.wixobj
 *.wixpdb
