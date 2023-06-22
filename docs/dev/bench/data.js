@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687449421927,
+  "lastUpdate": 1687467667822,
   "repoUrl": "https://github.com/codeboten/opentelemetry-collector",
   "entries": {
     "Benchmark": [
@@ -156,6 +156,162 @@ window.BENCHMARK_DATA = {
             "value": 34759,
             "unit": "ns/op\t   30960 B/op\t     269 allocs/op",
             "extra": "34370 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alex@boten.ca",
+            "name": "Alex Boten",
+            "username": "codeboten"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c6b49f8b1b0b25495e09695eac4eaee0f479189b",
+          "message": "Merge branch 'open-telemetry:main' into main",
+          "timestamp": "2023-06-22T13:57:15-07:00",
+          "tree_id": "0262bbded4b63b4715d982cb2eb99e0ce6d40b94",
+          "url": "https://github.com/codeboten/opentelemetry-collector/commit/c6b49f8b1b0b25495e09695eac4eaee0f479189b"
+        },
+        "date": 1687467663842,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkBoundedQueue",
+            "value": 477.3,
+            "unit": "ns/op",
+            "extra": "2670004 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkBoundedQueueWithFactory",
+            "value": 255.6,
+            "unit": "ns/op",
+            "extra": "4180713 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkTraceSizeSpanCount",
+            "value": 5.162,
+            "unit": "ns/op",
+            "extra": "228021067 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkBatchMetricProcessor",
+            "value": 913532,
+            "unit": "ns/op",
+            "extra": "1239 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkMultiBatchMetricProcessor",
+            "value": 929682,
+            "unit": "ns/op",
+            "extra": "1298 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkHttpRequest/HTTP/2.0,_shared_client_(like_load_balancer)",
+            "value": 70622,
+            "unit": "ns/op",
+            "extra": "16936 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkHttpRequest/HTTP/1.1,_shared_client_(like_load_balancer)",
+            "value": 45233,
+            "unit": "ns/op",
+            "extra": "31876 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkHttpRequest/HTTP/2.0,_client_per_thread_(like_single_app)",
+            "value": 69251,
+            "unit": "ns/op",
+            "extra": "17020 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkHttpRequest/HTTP/1.1,_client_per_thread_(like_single_app)",
+            "value": 39802,
+            "unit": "ns/op",
+            "extra": "27282 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkCompressors/sm_log_request/raw_bytes_160/compressed_bytes_162/compressor_gzip",
+            "value": 35575,
+            "unit": "ns/op",
+            "extra": "33264 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkJSONUnmarshal",
+            "value": 2227,
+            "unit": "ns/op\t    1040 B/op\t      55 allocs/op",
+            "extra": "462446 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkLogsToProto",
+            "value": 7477,
+            "unit": "ns/op",
+            "extra": "159126 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkLogsFromProto",
+            "value": 16690,
+            "unit": "ns/op\t   16624 B/op\t     141 allocs/op",
+            "extra": "71504 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkOtlpToFromInternal_PassThrough",
+            "value": 0.336,
+            "unit": "ns/op",
+            "extra": "1000000000 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkOtlpToFromInternal_Gauge_MutateOneLabel",
+            "value": 43.54,
+            "unit": "ns/op",
+            "extra": "27416848 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkOtlpToFromInternal_Sum_MutateOneLabel",
+            "value": 43.51,
+            "unit": "ns/op",
+            "extra": "26043350 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkOtlpToFromInternal_HistogramPoints_MutateOneLabel",
+            "value": 46.7,
+            "unit": "ns/op",
+            "extra": "26912157 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkMetricsToProto",
+            "value": 13650,
+            "unit": "ns/op",
+            "extra": "88951 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkMetricsFromProto",
+            "value": 50316,
+            "unit": "ns/op\t   31984 B/op\t     909 allocs/op",
+            "extra": "24180 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkJSONUnmarshal",
+            "value": 8434,
+            "unit": "ns/op\t    4392 B/op\t     217 allocs/op",
+            "extra": "142906 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkTracesToProto",
+            "value": 10088,
+            "unit": "ns/op",
+            "extra": "118888 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkTracesFromProto",
+            "value": 28159,
+            "unit": "ns/op\t   30960 B/op\t     269 allocs/op",
+            "extra": "42454 times\n2 procs"
           }
         ]
       }
