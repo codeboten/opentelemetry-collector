@@ -150,7 +150,7 @@ func (sp *SpanProcessor) Unmarshal(conf *confmap.Conf) error {
 	}
 
 	if sp.Batch != nil {
-		if sp.Batch.Exporter.Console == nil {
+		if sp.Batch.Exporter.Console == nil && sp.Batch.Exporter.Otlp == nil {
 			return fmt.Errorf("invalid exporter configuration")
 		}
 		return nil
