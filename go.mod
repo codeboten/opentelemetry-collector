@@ -26,6 +26,7 @@ require (
 	go.opentelemetry.io/collector/processor v0.83.0
 	go.opentelemetry.io/collector/receiver v0.83.0
 	go.opentelemetry.io/collector/semconv v0.83.0
+	go.opentelemetry.io/contrib/config v0.0.0-00010101000000-000000000000
 	go.opentelemetry.io/contrib/propagators/b3 v1.17.0
 	go.opentelemetry.io/otel v1.16.0
 	go.opentelemetry.io/otel/bridge/opencensus v0.39.0
@@ -133,3 +134,5 @@ retract (
 	v0.57.0 // Release failed, use v0.57.2
 	v0.32.0 // Contains incomplete metrics transition to proto 0.9.0, random components are not working.
 )
+
+replace go.opentelemetry.io/contrib/config => github.com/codeboten/opentelemetry-go-contrib/config v0.0.0-20230821213410-d25025fb889e
