@@ -4,7 +4,6 @@
 package service // import "go.opentelemetry.io/collector/service"
 
 import (
-	"context"
 	"errors"
 	"net"
 	"net/http"
@@ -23,9 +22,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	noopmetric "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/propagation"
-	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	nooptrace "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/multierr"
@@ -83,99 +80,78 @@ func (tel *telemetryInitializer) init(res *resource.Resource, settings servicete
 		return nil
 	}
 
-	settings.Logger.Info("Setting up own telemetry...")
-
-	if tp, err := tel.initTraces(res, cfg); err == nil {
-		tel.tp = tp
-	} else {
-		return err
-	}
-
+	// TODO: move this to NewSDK
 	if tp, err := textMapPropagatorFromConfig(cfg.Traces.Propagators); err == nil {
 		otel.SetTextMapPropagator(tp)
 	} else {
 		return err
 	}
 
-	return tel.initMetrics(res, settings.Logger, cfg, asyncErrorChannel)
-}
-
-func (tel *telemetryInitializer) initTraces(res *resource.Resource, cfg telemetry.Config) (trace.TracerProvider, error) {
-	opts := []sdktrace.TracerProviderOption{}
-	for _, processor := range cfg.Traces.Processors {
-		sp, err := proctelemetry.InitSpanProcessor(context.Background(), processor)
-		if err != nil {
-			return nil, err
-		}
-		opts = append(opts, sdktrace.WithSpanProcessor(sp))
+	settings.Logger.Info("Setting up own telemetry...")
+	if err := tel.translateLegacyConfig(&cfg, settings.Logger); err != nil {
+		return err
 	}
-	return proctelemetry.InitTracerProvider(res, opts)
-}
-
-func (tel *telemetryInitializer) initMetrics(res *resource.Resource, logger *zap.Logger, cfg telemetry.Config, asyncErrorChannel chan error) error {
-	// Initialize the ocRegistry, still used by the process metrics.
-	tel.ocRegistry = ocmetric.NewRegistry()
-	if !tel.useOtel && !tel.extendedConfig {
-		return tel.initOpenCensus(res, logger, cfg.Metrics.Address, cfg.Metrics.Level, asyncErrorChannel)
-	}
-
-	if len(cfg.Metrics.Address) != 0 {
-		if tel.extendedConfig {
-			logger.Warn("service::telemetry::metrics::address is being deprecated in favor of service::telemetry::metrics::readers")
-		}
-		host, port, err := net.SplitHostPort(cfg.Metrics.Address)
-		if err != nil {
-			return err
-		}
-		portInt, err := strconv.Atoi(port)
-		if err != nil {
-			return err
-		}
-		if cfg.Metrics.Readers == nil {
-			cfg.Metrics.Readers = []config.MetricReader{}
-		}
-		cfg.Metrics.Readers = append(cfg.Metrics.Readers, config.MetricReader{
-			Pull: &config.PullMetricReader{
-				Exporter: config.MetricExporter{
-					Prometheus: &config.Prometheus{
-						Host: &host,
-						Port: &portInt,
-					},
-				},
-			},
-		})
-	}
-
-	metricproducer.GlobalManager().AddProducer(tel.ocRegistry)
-	opts := []sdkmetric.Option{}
-	for _, reader := range cfg.Metrics.Readers {
-		// https://github.com/open-telemetry/opentelemetry-collector/issues/8045
-		r, server, err := proctelemetry.InitMetricReader(context.Background(), reader, asyncErrorChannel)
-		if err != nil {
-			return err
-		}
-		if server != nil {
-			tel.servers = append(tel.servers, server)
-			logger.Info(
-				"Serving metrics",
-				zap.String(zapKeyTelemetryAddress, server.Addr),
-				zap.String(zapKeyTelemetryLevel, cfg.Metrics.Level.String()),
-			)
-		}
-		opts = append(opts, sdkmetric.WithReader(r))
-	}
-
-	mp, err := proctelemetry.InitOpenTelemetry(res, opts, tel.disableHighCardinality)
+	otelSDK, err := config.NewSDK(config.WithOpenTelemetryConfiguration(config.OpenTelemetryConfiguration{
+		TracerProvider: &config.TracerProvider{
+			Processors: cfg.Traces.Processors,
+		},
+		// TODO: set propagators from config
+		Propagator: cfg.Traces.Propagators,
+	}))
 	if err != nil {
 		return err
 	}
-	tel.mp = mp
+	tel.tp = otelSDK.TracerProvider()
+
+	// Initialize the ocRegistry, still used by the process metrics.
+	tel.ocRegistry = ocmetric.NewRegistry()
+	metricproducer.GlobalManager().AddProducer(tel.ocRegistry)
+	if !tel.useOtel && !tel.extendedConfig {
+		return tel.initOpenCensus(res, settings.Logger, cfg.Metrics.Address, cfg.Metrics.Level, asyncErrorChannel)
+	}
+
+	tel.servers = append(tel.servers, proctelemetry.InitPrometheusServer(promRegistry, address, asyncErrorChannel))
+	tel.mp = otelSDK.MeterProvider()
+
+	return nil
+}
+
+func (tel *telemetryInitializer) translateLegacyConfig(cfg *telemetry.Config, logger *zap.Logger) error {
+	if len(cfg.Metrics.Address) == 0 {
+		return nil
+	}
+
+	if tel.extendedConfig {
+		logger.Warn("service::telemetry::metrics::address is being deprecated in favor of service::telemetry::metrics::readers")
+	}
+
+	host, port, err := net.SplitHostPort(cfg.Metrics.Address)
+	if err != nil {
+		return err
+	}
+
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return err
+	}
+	if cfg.Metrics.Readers == nil {
+		cfg.Metrics.Readers = []config.MetricReader{}
+	}
+	cfg.Metrics.Readers = append(cfg.Metrics.Readers, config.MetricReader{
+		Pull: &config.PullMetricReader{
+			Exporter: config.MetricExporter{
+				Prometheus: &config.Prometheus{
+					Host: &host,
+					Port: &portInt,
+				},
+			},
+		},
+	})
 	return nil
 }
 
 func (tel *telemetryInitializer) initOpenCensus(res *resource.Resource, logger *zap.Logger, address string, level configtelemetry.Level, asyncErrorChannel chan error) error {
 	promRegistry := prometheus.NewRegistry()
-	metricproducer.GlobalManager().AddProducer(tel.ocRegistry)
 
 	tel.views = obsreportconfig.AllViews(level)
 	if err := view.Register(tel.views...); err != nil {
