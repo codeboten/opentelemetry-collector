@@ -23,7 +23,7 @@ require (
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.89.0
 	go.opentelemetry.io/collector/receiver v0.89.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.89.0
-	golang.org/x/sys v0.14.0
+	golang.org/x/sys v0.15.0
 )
 
 require (
