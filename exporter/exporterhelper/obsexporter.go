@@ -29,29 +29,38 @@ type ObsReport struct {
 }
 
 // ObsReportSettings are settings for creating an ObsReport.
+//
+// Deprecated: [v0.103.0] This is being removed as all elements exist in exporter.Settings.
 type ObsReportSettings struct {
 	ExporterID             component.ID
 	ExporterCreateSettings exporter.Settings
 }
 
 // NewObsReport creates a new Exporter.
+//
+// Deprecated: [v0.103.0] Use exporter.NewObsReportWithSettings instead.
 func NewObsReport(cfg ObsReportSettings) (*ObsReport, error) {
-	return newExporter(cfg)
+	return NewObsReportWithSettings(cfg.ExporterCreateSettings)
 }
 
-func newExporter(cfg ObsReportSettings) (*ObsReport, error) {
-	telemetryBuilder, err := metadata.NewTelemetryBuilder(cfg.ExporterCreateSettings.TelemetrySettings)
+// NewObsReportWithSettings creates a new Exporter.
+func NewObsReportWithSettings(set exporter.Settings) (*ObsReport, error) {
+	return newExporter(set)
+}
+
+func newExporter(set exporter.Settings) (*ObsReport, error) {
+	telemetryBuilder, err := metadata.NewTelemetryBuilder(set.TelemetrySettings)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ObsReport{
-		level:          cfg.ExporterCreateSettings.TelemetrySettings.MetricsLevel,
-		spanNamePrefix: obsmetrics.ExporterPrefix + cfg.ExporterID.String(),
-		tracer:         cfg.ExporterCreateSettings.TracerProvider.Tracer(cfg.ExporterID.String()),
+		level:          set.TelemetrySettings.MetricsLevel,
+		spanNamePrefix: obsmetrics.ExporterPrefix + set.ID.String(),
+		tracer:         set.TracerProvider.Tracer(set.ID.String()),
 
 		otelAttrs: []attribute.KeyValue{
-			attribute.String(obsmetrics.ExporterKey, cfg.ExporterID.String()),
+			attribute.String(obsmetrics.ExporterKey, set.ID.String()),
 		},
 		telemetryBuilder: telemetryBuilder,
 	}, nil
