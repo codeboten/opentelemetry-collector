@@ -37,24 +37,33 @@ type ObsReport struct {
 }
 
 // ObsReportSettings are settings for creating an ObsReport.
+//
+// Deprecated: [v0.103.0] This is being removed as all elements exist in exporter.Settings.
 type ObsReportSettings struct {
 	ProcessorID             component.ID
 	ProcessorCreateSettings processor.Settings
 }
 
 // NewObsReport creates a new Processor.
+//
+// Deprecated: [v0.103.0] Use NewObsReportWithSettings instead.
 func NewObsReport(cfg ObsReportSettings) (*ObsReport, error) {
-	return newObsReport(cfg)
+	return NewObsReportWithSettings(cfg.ProcessorCreateSettings)
 }
 
-func newObsReport(cfg ObsReportSettings) (*ObsReport, error) {
-	telemetryBuilder, err := metadata.NewTelemetryBuilder(cfg.ProcessorCreateSettings.TelemetrySettings, metadata.WithLevel(cfg.ProcessorCreateSettings.MetricsLevel))
+// NewObsReportWithSettings creates a new Exporter.
+func NewObsReportWithSettings(set processor.Settings) (*ObsReport, error) {
+	return newObsReport(set)
+}
+
+func newObsReport(set processor.Settings) (*ObsReport, error) {
+	telemetryBuilder, err := metadata.NewTelemetryBuilder(set.TelemetrySettings, metadata.WithLevel(set.MetricsLevel))
 	if err != nil {
 		return nil, err
 	}
 	return &ObsReport{
 		otelAttrs: []attribute.KeyValue{
-			attribute.String(obsmetrics.ProcessorKey, cfg.ProcessorID.String()),
+			attribute.String(obsmetrics.ProcessorKey, set.ID.String()),
 		},
 		telemetryBuilder: telemetryBuilder,
 	}, nil

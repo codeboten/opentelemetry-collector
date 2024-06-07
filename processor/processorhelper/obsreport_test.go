@@ -25,9 +25,10 @@ func TestProcessorTraceData(t *testing.T) {
 		const acceptedSpans = 27
 		const refusedSpans = 19
 		const droppedSpans = 13
-		obsrep, err := newObsReport(ObsReportSettings{
-			ProcessorID:             processorID,
-			ProcessorCreateSettings: processor.Settings{ID: processorID, TelemetrySettings: tt.TelemetrySettings(), BuildInfo: component.NewDefaultBuildInfo()},
+		obsrep, err := newObsReport(processor.Settings{
+			ID:                processorID,
+			TelemetrySettings: tt.TelemetrySettings(),
+			BuildInfo:         component.NewDefaultBuildInfo(),
 		})
 		require.NoError(t, err)
 		obsrep.TracesAccepted(context.Background(), acceptedSpans)
@@ -44,9 +45,10 @@ func TestProcessorMetricsData(t *testing.T) {
 		const refusedPoints = 11
 		const droppedPoints = 17
 
-		obsrep, err := newObsReport(ObsReportSettings{
-			ProcessorID:             processorID,
-			ProcessorCreateSettings: processor.Settings{ID: processorID, TelemetrySettings: tt.TelemetrySettings(), BuildInfo: component.NewDefaultBuildInfo()},
+		obsrep, err := newObsReport(processor.Settings{
+			ID:                processorID,
+			TelemetrySettings: tt.TelemetrySettings(),
+			BuildInfo:         component.NewDefaultBuildInfo(),
 		})
 		require.NoError(t, err)
 		obsrep.MetricsAccepted(context.Background(), acceptedPoints)
@@ -85,9 +87,10 @@ func TestProcessorLogRecords(t *testing.T) {
 		const refusedRecords = 11
 		const droppedRecords = 17
 
-		obsrep, err := newObsReport(ObsReportSettings{
-			ProcessorID:             processorID,
-			ProcessorCreateSettings: processor.Settings{ID: processorID, TelemetrySettings: tt.TelemetrySettings(), BuildInfo: component.NewDefaultBuildInfo()},
+		obsrep, err := newObsReport(processor.Settings{
+			ID:                processorID,
+			TelemetrySettings: tt.TelemetrySettings(),
+			BuildInfo:         component.NewDefaultBuildInfo(),
 		})
 		require.NoError(t, err)
 		obsrep.LogsAccepted(context.Background(), acceptedRecords)

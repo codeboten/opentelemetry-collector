@@ -30,9 +30,10 @@ func TestExportTraceDataOp(t *testing.T) {
 		parentCtx, parentSpan := tt.TelemetrySettings().TracerProvider.Tracer("test").Start(context.Background(), t.Name())
 		defer parentSpan.End()
 
-		obsrep, err := newExporter(ObsReportSettings{
-			ExporterID:             exporterID,
-			ExporterCreateSettings: exporter.Settings{ID: exporterID, TelemetrySettings: tt.TelemetrySettings(), BuildInfo: component.NewDefaultBuildInfo()},
+		obsrep, err := newExporter(exporter.Settings{
+			ID:                exporterID,
+			TelemetrySettings: tt.TelemetrySettings(),
+			BuildInfo:         component.NewDefaultBuildInfo(),
 		})
 		require.NoError(t, err)
 
@@ -78,9 +79,10 @@ func TestExportMetricsOp(t *testing.T) {
 		parentCtx, parentSpan := tt.TelemetrySettings().TracerProvider.Tracer("test").Start(context.Background(), t.Name())
 		defer parentSpan.End()
 
-		obsrep, err := newExporter(ObsReportSettings{
-			ExporterID:             exporterID,
-			ExporterCreateSettings: exporter.Settings{ID: exporterID, TelemetrySettings: tt.TelemetrySettings(), BuildInfo: component.NewDefaultBuildInfo()},
+		obsrep, err := newExporter(exporter.Settings{
+			ID:                exporterID,
+			TelemetrySettings: tt.TelemetrySettings(),
+			BuildInfo:         component.NewDefaultBuildInfo(),
 		})
 		require.NoError(t, err)
 
@@ -127,10 +129,11 @@ func TestExportLogsOp(t *testing.T) {
 		parentCtx, parentSpan := tt.TelemetrySettings().TracerProvider.Tracer("test").Start(context.Background(), t.Name())
 		defer parentSpan.End()
 
-		obsrep, err := newExporter(ObsReportSettings{
-			ExporterID:             exporterID,
-			ExporterCreateSettings: exporter.Settings{ID: exporterID, TelemetrySettings: tt.TelemetrySettings(), BuildInfo: component.NewDefaultBuildInfo()},
-		})
+		obsrep, err := newExporter(exporter.Settings{
+			ID:                exporterID,
+			TelemetrySettings: tt.TelemetrySettings(),
+			BuildInfo:         component.NewDefaultBuildInfo()},
+		)
 		require.NoError(t, err)
 
 		params := []testParams{

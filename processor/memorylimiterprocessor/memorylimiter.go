@@ -26,10 +26,7 @@ func newMemoryLimiterProcessor(set processor.Settings, cfg *Config) (*memoryLimi
 	if err != nil {
 		return nil, err
 	}
-	obsrep, err := processorhelper.NewObsReport(processorhelper.ObsReportSettings{
-		ProcessorID:             set.ID,
-		ProcessorCreateSettings: set,
-	})
+	obsrep, err := processorhelper.NewObsReportWithSettings(set)
 	if err != nil {
 		return nil, err
 	}
