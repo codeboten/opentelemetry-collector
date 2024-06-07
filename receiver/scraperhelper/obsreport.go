@@ -32,6 +32,8 @@ type ObsReport struct {
 }
 
 // ObsReportSettings are settings for creating an ObsReport.
+//
+// Deprecated: [v0.103.0] This is being removed as all elements exist in receiver.Settings.
 type ObsReportSettings struct {
 	ReceiverID             component.ID
 	Scraper                component.ID
@@ -39,23 +41,30 @@ type ObsReportSettings struct {
 }
 
 // NewObsReport creates a new ObsReport.
+//
+// Deprecated: [v0.103.0] Use NewObsReportWithSettings instead.
 func NewObsReport(cfg ObsReportSettings) (*ObsReport, error) {
-	return newScraper(cfg)
+	return NewObsReportWithSettings(cfg.ReceiverCreateSettings)
 }
 
-func newScraper(cfg ObsReportSettings) (*ObsReport, error) {
-	telemetryBuilder, err := metadata.NewTelemetryBuilder(cfg.ReceiverCreateSettings.TelemetrySettings)
+// NewObsReportWithSettings creates a new ObsReport.
+func NewObsReportWithSettings(set receiver.Settings) (*ObsReport, error) {
+	return newScraper(set)
+}
+
+func newScraper(set receiver.Settings) (*ObsReport, error) {
+	telemetryBuilder, err := metadata.NewTelemetryBuilder(set.TelemetrySettings)
 	if err != nil {
 		return nil, err
 	}
 	return &ObsReport{
-		level:      cfg.ReceiverCreateSettings.TelemetrySettings.MetricsLevel,
-		receiverID: cfg.ReceiverID,
+		level:      set.TelemetrySettings.MetricsLevel,
+		receiverID: set.ID,
 		scraper:    cfg.Scraper,
-		tracer:     cfg.ReceiverCreateSettings.TracerProvider.Tracer(cfg.Scraper.String()),
+		tracer:     set.TracerProvider.Tracer(cfg.Scraper.String()),
 
 		otelAttrs: []attribute.KeyValue{
-			attribute.String(obsmetrics.ReceiverKey, cfg.ReceiverID.String()),
+			attribute.String(obsmetrics.ReceiverKey, set.ID.String()),
 			attribute.String(obsmetrics.ScraperKey, cfg.Scraper.String()),
 		},
 		telemetryBuilder: telemetryBuilder,
