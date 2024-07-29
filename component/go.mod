@@ -7,7 +7,6 @@ require (
 	github.com/prometheus/client_model v0.6.1
 	github.com/prometheus/common v0.55.0
 	github.com/stretchr/testify v1.9.0
-	go.opentelemetry.io/collector/config/configtelemetry v0.105.0
 	go.opentelemetry.io/collector/pdata v1.12.0
 	go.opentelemetry.io/otel v1.28.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.50.0
@@ -39,8 +38,6 @@ require (
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace go.opentelemetry.io/collector/config/configtelemetry => ../config/configtelemetry
 
 replace go.opentelemetry.io/collector/pdata => ../pdata
 

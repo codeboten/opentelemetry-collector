@@ -6,7 +6,6 @@ require go.opentelemetry.io/collector/component v0.105.0
 
 require (
 	github.com/gogo/protobuf v1.3.2 // indirect
-	go.opentelemetry.io/collector/config/configtelemetry v0.105.0 // indirect
 	go.opentelemetry.io/collector/pdata v1.12.0 // indirect
 	go.opentelemetry.io/otel v1.28.0 // indirect
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
@@ -22,7 +21,5 @@ require (
 )
 
 replace go.opentelemetry.io/collector/pdata => ../../pdata
-
-replace go.opentelemetry.io/collector/config/configtelemetry => ../../config/configtelemetry
 
 replace go.opentelemetry.io/collector/component => ../

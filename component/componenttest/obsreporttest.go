@@ -17,7 +17,6 @@ import (
 	"go.uber.org/multierr"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configtelemetry"
 )
 
 const (
@@ -149,7 +148,6 @@ func SetupTelemetry(id component.ID) (TestTelemetry, error) {
 		SpanRecorder: sr,
 	}
 	settings.ts.TracerProvider = tp
-	settings.ts.MetricsLevel = configtelemetry.LevelNormal
 
 	promRegOtel := prometheus.NewRegistry()
 
