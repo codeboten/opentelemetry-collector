@@ -168,10 +168,12 @@ type ServerConfig struct {
 	// The default value is nil, which will cause the protocol to not use TLS.
 	TLSSetting *configtls.ServerConfig `mapstructure:"tls"`
 
-	// MaxRecvMsgSizeMiB sets the maximum size (in MiB) of messages accepted by the server.
+	// MaxRecvMsgSizeMiB sets the maximum size (in MiB) of messages accepted by the server
+	// (https://pkg.go.dev/google.golang.org/grpc#MaxRecvMsgSize).
 	MaxRecvMsgSizeMiB int `mapstructure:"max_recv_msg_size_mib"`
 
-	// MaxConcurrentStreams sets the limit on the number of concurrent streams to each ServerTransport.
+	// MaxConcurrentStreams sets the limit on the number of concurrent streams to each ServerTransport
+	// (https://pkg.go.dev/google.golang.org/grpc#MaxConcurrentStreams).
 	// It has effect only for streaming RPCs.
 	MaxConcurrentStreams int `mapstructure:"max_concurrent_streams"`
 
