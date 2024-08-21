@@ -169,11 +169,11 @@ type ServerConfig struct {
 	TLSSetting *configtls.ServerConfig `mapstructure:"tls"`
 
 	// MaxRecvMsgSizeMiB sets the maximum size (in MiB) of messages accepted by the server.
-	MaxRecvMsgSizeMiB uint64 `mapstructure:"max_recv_msg_size_mib"`
+	MaxRecvMsgSizeMiB int `mapstructure:"max_recv_msg_size_mib"`
 
 	// MaxConcurrentStreams sets the limit on the number of concurrent streams to each ServerTransport.
 	// It has effect only for streaming RPCs.
-	MaxConcurrentStreams uint32 `mapstructure:"max_concurrent_streams"`
+	MaxConcurrentStreams int `mapstructure:"max_concurrent_streams"`
 
 	// ReadBufferSize for gRPC server. See grpc.ReadBufferSize.
 	// (https://godoc.org/google.golang.org/grpc#ReadBufferSize).
@@ -347,11 +347,11 @@ func (gss *ServerConfig) toServerOption(host component.Host, settings component.
 	}
 
 	if gss.MaxRecvMsgSizeMiB > 0 {
-		opts = append(opts, grpc.MaxRecvMsgSize(int(gss.MaxRecvMsgSizeMiB*1024*1024)))
+		opts = append(opts, grpc.MaxRecvMsgSize(gss.MaxRecvMsgSizeMiB*1024*1024))
 	}
 
 	if gss.MaxConcurrentStreams > 0 {
-		opts = append(opts, grpc.MaxConcurrentStreams(gss.MaxConcurrentStreams))
+		opts = append(opts, grpc.MaxConcurrentStreams(uint32(gss.MaxConcurrentStreams)))
 	}
 
 	if gss.ReadBufferSize > 0 {
