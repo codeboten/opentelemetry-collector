@@ -47,7 +47,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install markdown-link-check
-        run: npm install
+        run: npm ci
 
       - name: Run markdown-link-check
         run: |
