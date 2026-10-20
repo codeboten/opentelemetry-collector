@@ -113,14 +113,16 @@ func (cc *ClientConfig) ToClient(ctx context.Context, extensions map[component.I
 		transport.WriteBufferSize = cc.WriteBufferSize
 	}
 
-	transport.DisableKeepAlives = !cc.Keepalive.HasValue()
-
+	if !cc.Keepalive.Enabled() {
+		transport.DisableKeepAlives = true
+	}
 	if kaCfg := cc.Keepalive.Get(); kaCfg != nil {
 		// Unmarshal always leaves Keepalive at None, so a value here was set
 		// programmatically afterwards and takes precedence.
 		transport.MaxIdleConns = kaCfg.MaxIdleConns
 		transport.MaxIdleConnsPerHost = kaCfg.MaxIdleConnsPerHost
 		transport.IdleConnTimeout = kaCfg.IdleConnTimeout
+		transport.DisableKeepAlives = false
 	}
 	transport.MaxConnsPerHost = cc.MaxConnsPerHost
 	transport.ForceAttemptHTTP2 = cc.ForceAttemptHTTP2

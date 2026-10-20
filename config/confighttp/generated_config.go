@@ -91,11 +91,7 @@ type ClientConfig struct {
 	// with the first middleware becoming the outermost handler.
 	Middlewares []configmiddleware.Config `mapstructure:"middlewares,omitempty"`
 
-	// Keepalive controls HTTP client keep-alives. Unmarshal folds this section into the deprecated
-	// fields below, which remain the source of truth during their deprecation
-	// window, and always resets it to None. A value visible to ToClient was
-	// therefore set programmatically after unmarshaling (or the config was
-	// never unmarshaled) and takes precedence over the deprecated fields.
+	// Keepalive controls HTTP client keep-alives.
 	Keepalive configoptional.Optional[KeepaliveClientConfig] `mapstructure:"keepalive,omitempty"`
 
 	// placeholder for the private fields
@@ -239,11 +235,6 @@ type ServerConfig struct {
 
 	// Keepalive controls HTTP keep-alives.
 	// By default, keep-alives are always enabled. Only very resource-constrained environments should disable them.
-	// Unmarshal folds this section into the deprecated fields below, which
-	// remain the source of truth during their deprecation window, and always
-	// resets it to None. A value visible to ToServer was therefore set
-	// programmatically after unmarshaling (or the config was never unmarshaled)
-	// and takes precedence over the deprecated fields.
 	Keepalive configoptional.Optional[KeepaliveServerConfig] `mapstructure:"keepalive,omitempty"`
 
 	// placeholder for the private fields

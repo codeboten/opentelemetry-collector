@@ -189,9 +189,10 @@ func TestPartialHTTPClientSettings(t *testing.T) {
 	}
 
 	tests := []struct {
-		name        string
-		settings    ClientConfig
-		shouldError bool
+		name                   string
+		settings               ClientConfig
+		shouldError            bool
+		expectDisableKeepAlive bool
 	}{
 		{
 			name: "valid_partial_settings",
@@ -204,6 +205,20 @@ func TestPartialHTTPClientSettings(t *testing.T) {
 				WriteBufferSize: 512,
 			},
 			shouldError: false,
+		},
+		{
+			name: "valid_partial_settings_disabled_keepalive",
+			settings: ClientConfig{
+				Endpoint: "localhost:1234",
+				TLS: configtls.ClientConfig{
+					Insecure: false,
+				},
+				Keepalive:       configoptional.Disabled[KeepaliveClientConfig](),
+				ReadBufferSize:  1024,
+				WriteBufferSize: 512,
+			},
+			shouldError:            false,
+			expectDisableKeepAlive: true,
 		},
 	}
 
@@ -220,7 +235,7 @@ func TestPartialHTTPClientSettings(t *testing.T) {
 			assert.Equal(t, 0, transport.MaxIdleConnsPerHost)
 			assert.Equal(t, 0, transport.MaxConnsPerHost)
 			assert.Equal(t, 90*time.Second, transport.IdleConnTimeout)
-			assert.False(t, transport.DisableKeepAlives)
+			assert.Equal(t, tt.expectDisableKeepAlive, transport.DisableKeepAlives)
 		})
 	}
 }

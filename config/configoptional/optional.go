@@ -18,9 +18,10 @@ import (
 type flavor int
 
 const (
-	noneFlavor    flavor = 0
-	defaultFlavor flavor = 1
-	someFlavor    flavor = 2
+	noneFlavor     flavor = 0
+	defaultFlavor  flavor = 1
+	someFlavor     flavor = 2
+	disabledFlavor flavor = 3
 )
 
 // Optional represents a value that may or may not be present.
@@ -99,11 +100,24 @@ func Default[T any](value T) Optional[T] {
 // for validation.
 //
 // It panics if T has a field with the mapstructure tag "enabled".
+func Disabled[T any]() Optional[T] {
+	if err := assertNoEnabledField[T](); err != nil {
+		panic(err)
+	}
+	return Optional[T]{flavor: disabledFlavor}
+}
+
+// None has no value. It has the same behavior as a nil pointer when unmarshaling.
+//
+// The zero value of Optional[T] is None[T]. Prefer using this constructor
+// for validation.
+//
+// It panics if T has a field with the mapstructure tag "enabled".
 func None[T any]() Optional[T] {
 	if err := assertNoEnabledField[T](); err != nil {
 		panic(err)
 	}
-	return Optional[T]{}
+	return Optional[T]{flavor: noneFlavor}
 }
 
 // HasValue checks if the Optional has a value.
@@ -197,7 +211,7 @@ func (o *Optional[T]) Unmarshal(conf *confmap.Conf) error {
 	if isEnabled {
 		o.flavor = someFlavor
 	} else {
-		o.flavor = noneFlavor
+		o.flavor = disabledFlavor
 		// override o.value with zero value.
 		var zero T
 		o.value = zero
@@ -249,8 +263,8 @@ var (
 // We do not need to check this since the hook for [ScalarMarshaler] will be called
 // before the hook for [Marshaler].
 func (o Optional[T]) Marshal(conf *confmap.Conf) error {
-	if o.flavor == noneFlavor || o.flavor == defaultFlavor {
-		// Optional is None or Default, do not marshal anything.
+	if o.flavor == disabledFlavor || o.flavor == noneFlavor || o.flavor == defaultFlavor {
+		// Optional is Disabled, None or Default, do not marshal anything.
 		return conf.Marshal(map[string]any(nil))
 	}
 
@@ -261,6 +275,10 @@ func (o Optional[T]) Marshal(conf *confmap.Conf) error {
 	return nil
 }
 
+func (o Optional[T]) Enabled() bool {
+	return o.flavor != disabledFlavor
+}
+
 func (o Optional[T]) MarshalScalar(scalarValue confmap.ScalarValue) error {
 	if deref(reflect.TypeOf(o.value)).Kind() == reflect.Struct {
 		if _, ok := any(o.value).(encoding.TextMarshaler); !ok {
@@ -269,7 +287,7 @@ func (o Optional[T]) MarshalScalar(scalarValue confmap.ScalarValue) error {
 		}
 	}
 
-	if o.flavor == noneFlavor || o.flavor == defaultFlavor {
+	if o.flavor == disabledFlavor || o.flavor == noneFlavor || o.flavor == defaultFlavor {
 		// An Optional of type None or Default should marshal as nil.
 		return scalarValue.Marshal(nil)
 	}
@@ -292,7 +310,7 @@ func (o *Optional[T]) Validate() error {
 	//
 	// If the flavor is still Default, then the user has not passed this
 	// value and we should also not validate it.
-	if o.flavor == noneFlavor || o.flavor == defaultFlavor {
+	if o.flavor == disabledFlavor || o.flavor == noneFlavor || o.flavor == defaultFlavor {
 		return nil
 	}
 
