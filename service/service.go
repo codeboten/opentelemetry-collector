@@ -262,8 +262,7 @@ func (srv *Service) Start(ctx context.Context) error {
 // (service.partialReload, Alpha) and the receiver phase gate
 // (service.partialReloadReceivers, Beta) to be enabled.
 func ReceiverPartialReloadEnabled() bool {
-	return metadata.ServicePartialReloadFeatureGate.IsEnabled() &&
-		metadata.ServicePartialReloadReceiversFeatureGate.IsEnabled()
+	return metadata.ServicePartialReloadFeatureGate.IsEnabled()
 }
 
 // UpdateReceivers performs a partial reload of receiver components.

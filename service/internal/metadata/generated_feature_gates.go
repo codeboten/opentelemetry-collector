@@ -24,10 +24,11 @@ var ServicePartialReloadFeatureGate = featuregate.GlobalRegistry().MustRegister(
 
 var ServicePartialReloadReceiversFeatureGate = featuregate.GlobalRegistry().MustRegister(
 	"service.partialReloadReceivers",
-	featuregate.StageBeta,
+	featuregate.StageStable,
 	featuregate.WithRegisterDescription("Controls whether receiver-only configuration changes restart only the receivers."),
 	featuregate.WithRegisterReferenceURL("https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/rfcs/partial-reload.md"),
 	featuregate.WithRegisterFromVersion("v0.157.0"),
+	featuregate.WithRegisterToVersion("v0.169.0"),
 )
 
 var ServiceProfilesSupportFeatureGate = featuregate.GlobalRegistry().MustRegister(

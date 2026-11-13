@@ -804,23 +804,18 @@ func TestRegisterProcessMetrics_SupportedOS_RegisterFails_ReturnsError(t *testin
 func TestReceiverPartialReloadEnabled(t *testing.T) {
 	// Both the master gate and the receiver phase gate must be enabled.
 	cases := []struct {
-		name     string
-		master   bool
-		receiver bool
-		want     bool
+		name   string
+		master bool
+		want   bool
 	}{
-		{"both disabled", false, false, false},
-		{"master only", true, false, false},
-		{"receiver only", false, true, false},
-		{"both enabled", true, true, true},
+		{"disabled", false, false},
+		{"enabled", true, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			require.NoError(t, featuregate.GlobalRegistry().Set("service.partialReload", tc.master))
-			require.NoError(t, featuregate.GlobalRegistry().Set("service.partialReloadReceivers", tc.receiver))
 			defer func() {
 				require.NoError(t, featuregate.GlobalRegistry().Set("service.partialReload", false))
-				require.NoError(t, featuregate.GlobalRegistry().Set("service.partialReloadReceivers", true))
 			}()
 			assert.Equal(t, tc.want, ReceiverPartialReloadEnabled())
 		})
